@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "mem0": {
+      "type": "http",
+      "url": "https://mcp.mem0.ai/mcp"
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_MCP_PAT}"
+      }
+    }
+  }
+}
