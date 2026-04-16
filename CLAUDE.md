@@ -21,20 +21,29 @@ other `vade-app` repositories from sessions started here.
 
 ## Architecture (target)
 
-- Canvas-based UI — HTML5 Canvas / WebGL. Pannable, zoomable,
-  infinite canvas treated as a camera over content.
+- Canvas-based UI built on **tldraw SDK** (v4.5.x). tldraw provides
+  the infinite canvas, pan/zoom, gestures, touch/tablet support,
+  shape system, and persistence. React 18 + TypeScript.
+- **MCP server** (`mcp/`) bridges Claude agents to the canvas via
+  WebSocket. Agents can create, update, delete, and query shapes
+  programmatically through MCP tools.
+- **Custom shapes** (`src/shapes/`) extend tldraw for computational
+  artifacts: CodeShape (code display), DataShape (structured data).
 - Control → State → Visualization loop as the primitive pattern
   for every artifact.
-- Plugin system for extensibility.
+- **Library system** (`~/.vade/library/`) — file-based storage of
+  canvas snapshots and reusable entity groups.
 - Target platforms: web (primary), iPad (via PWA), macOS desktop
   (via Tauri, deferred until web earns its weight).
 
-## Tech stack (planned)
+## Tech stack
 
-- TypeScript (strict mode) + Node.js 20 LTS
+- TypeScript (strict mode) + Node.js 20+ LTS
+- React 18 + tldraw ^4.5.x
 - Vite for dev server and bundling
+- @modelcontextprotocol/server for MCP
+- ws (WebSocket) for MCP-to-canvas bridge
 - Tauri 2.x for desktop/mobile wrappers (later phase)
-- Rust for performance-critical backend modules (later phase)
 
 ## Conventions
 
@@ -72,6 +81,16 @@ for the authoritative list.
 
 ## Current state
 
-The repository is a fresh scaffold. No source yet. The first
-concrete task is to scaffold the canvas shell: Vite + TypeScript
-with an empty HTML5 canvas that supports pan and zoom.
+Canvas shell scaffolded with tldraw SDK. Vite + React 18 +
+TypeScript strict. PWA manifest for iPad. MCP server and custom
+shapes in progress.
+
+## Running the project
+
+```bash
+npm install           # install dependencies
+npm run dev           # start Vite dev server (LAN-accessible)
+npm run mcp           # start MCP server (when implemented)
+npm run dev:all       # start both (when MCP server exists)
+npm run build         # production build
+```

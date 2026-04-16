@@ -2,28 +2,40 @@
 
 **VADE kernel and canvas IDE.** The primary application repo for
 [VADE](https://github.com/vade-app) — a Visual Agent-based
-Development Environment. Canvas-based IDE/OS hybrid where a
-hierarchical society of AI agents builds interactive tools via a
-Control → State → Visualization loop.
+Development Environment. Canvas-based IDE/OS hybrid where AI agents
+build interactive tools on an infinite canvas.
 
 ## Status
 
-**Pre-alpha.** Bootstrap phase — no source yet. Scaffolding begins
-once `PROJ-bootstrap` completes.
+**Pre-alpha.** Canvas shell scaffolded with tldraw SDK. MCP server
+and custom shapes in progress.
 
-## What this repo contains (when built)
+## What this repo contains
 
-- The canvas runtime (pan/zoom/camera model)
-- The Control → State → Visualization loop primitives
-- The agent orchestration layer (single PM + single dev at MVP)
-- The plugin system
-- The base UI-element and data-type libraries
-- The DFT explorer as the reference artifact
+- **Canvas app** (`src/`) — tldraw-based infinite canvas with custom
+  shapes for computational artifacts
+- **MCP server** (`mcp/`) — bridges Claude agents to the running
+  canvas via WebSocket, enabling real-time shape creation and
+  manipulation through MCP tools
+- **PWA support** — installable on iPad via Add to Home Screen
 
 ## Tech stack
 
-TypeScript (strict) + Vite + HTML5 Canvas / WebGL. Tauri for native
-wrappers is deferred until the web target earns its weight.
+- React 18 + TypeScript (strict) + Vite
+- tldraw ^4.5.x (infinite canvas SDK)
+- @modelcontextprotocol/server (MCP bridge)
+- WebSocket (real-time MCP-to-canvas communication)
+
+## Getting started
+
+```bash
+npm install           # install dependencies
+npm run dev           # start Vite dev server (LAN-accessible on :5173)
+npm run build         # production build
+```
+
+Access from iPad: open `http://<your-mac-ip>:5173` in Safari, then
+Add to Home Screen for full-screen PWA mode.
 
 ## Governance
 
