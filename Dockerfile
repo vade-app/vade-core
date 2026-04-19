@@ -20,6 +20,7 @@ ENV VADE_MCP_TRANSPORT=sse
 ENV VADE_MCP_HTTP_PORT=8080
 ENV VADE_LIBRARY_PATH=/home/node/.vade/library
 ENV NODE_ENV=production
+ENV VITE_BRIDGE_URL=wss://mcp.vade-app.dev/canvas
 
 EXPOSE 8080
 
