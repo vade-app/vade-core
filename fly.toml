@@ -8,7 +8,7 @@ primary_region = 'fra'
   VADE_MCP_TRANSPORT = 'sse'
   VADE_MCP_HTTP_PORT = '8080'
   VADE_LIBRARY_PATH = '/home/node/.vade/library'
-  VITE_BRIDGE_URL=''wss://mcp.vade-app.dev/canvas''
+  VITE_BRIDGE_URL = 'wss://mcp.vade-app.dev/canvas'
 
 [http_service]
   internal_port = 8080
