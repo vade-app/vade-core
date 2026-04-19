@@ -135,6 +135,21 @@ export class VadeBridge {
           break
         }
 
+        case 'createBindings': {
+          const beforeIds = new Set(
+            editor.store.allRecords()
+              .filter(r => r.typeName === 'binding')
+              .map(r => r.id)
+          )
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          editor.createBindings(msg.bindings as any)
+          const created = editor.store.allRecords()
+            .filter(r => r.typeName === 'binding' && !beforeIds.has(r.id))
+            .map(r => r.id)
+          this.reply(msg.id, true, created)
+          break
+        }
+
         case 'queryShapes': {
           let shapes = editor.getCurrentPageShapes()
           if (msg.filter?.type) {
