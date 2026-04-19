@@ -3,6 +3,7 @@ export type ServerMessage =
   | { type: 'updateShapes'; id: string; shapes: ShapeUpdate[] }
   | { type: 'deleteShapes'; id: string; ids: string[] }
   | { type: 'queryShapes'; id: string; filter?: { type?: string } }
+  | { type: 'createBindings'; id: string; bindings: BindingPartial[] }
   | { type: 'getSnapshot'; id: string }
   | { type: 'loadSnapshot'; id: string; snapshot: unknown }
 
@@ -25,4 +26,12 @@ export interface ShapeUpdate {
   x?: number
   y?: number
   props?: Record<string, unknown>
+}
+
+export interface BindingPartial {
+  type: string
+  fromId: string
+  toId: string
+  props?: Record<string, unknown>
+  meta?: Record<string, unknown>
 }

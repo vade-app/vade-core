@@ -36,7 +36,7 @@ export function registerShapeTools(server: McpServer, bridge: CanvasBridge) {
       id: makeId(),
       shapes: [{ id, type, x, y, props }],
     })
-    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] }
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result ?? { ok: true }) }] }
   })
 
   server.registerTool('deleteShapes', {
@@ -49,6 +49,26 @@ export function registerShapeTools(server: McpServer, bridge: CanvasBridge) {
       type: 'deleteShapes',
       id: makeId(),
       ids,
+    })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result ?? { ok: true }) }] }
+  })
+
+  server.registerTool('createBindings', {
+    description: 'Create bindings between shapes (e.g. bind arrow terminals to shapes). For an arrow binding, set type="arrow", fromId=arrow shape id, toId=target shape id, and props={ terminal: "start"|"end", normalizedAnchor: {x,y}, isPrecise, isExact, snap }.',
+    inputSchema: {
+      bindings: z.array(z.object({
+        type: z.string().describe('Binding type (e.g. "arrow")'),
+        fromId: z.string().describe('Source shape ID (e.g. the arrow)'),
+        toId: z.string().describe('Target shape ID (e.g. the shape the arrow terminal attaches to)'),
+        props: z.record(z.string(), z.unknown()).optional().describe('Binding-type-specific properties'),
+        meta: z.record(z.string(), z.unknown()).optional(),
+      })).describe('Array of bindings to create'),
+    },
+  }, async ({ bindings }) => {
+    const result = await bridge.send({
+      type: 'createBindings',
+      id: makeId(),
+      bindings,
     })
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] }
   })
