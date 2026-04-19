@@ -99,6 +99,17 @@ export class VadeBridge {
       switch (msg.type) {
         case 'createShapes': {
           const beforeIds = new Set(editor.getCurrentPageShapes().map(s => s.id))
+          editor.run(() => {
+            for (const s of msg.shapes) {
+              const partial: Record<string, unknown> = { type: s.type }
+              if (s.x !== undefined) partial['x'] = s.x
+              if (s.y !== undefined) partial['y'] = s.y
+              if (s.rotation !== undefined) partial['rotation'] = s.rotation
+              if (s.props) partial['props'] = s.props
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              editor.createShape(partial as any)
+            }
+          })
           for (const s of msg.shapes) {
             const partial: Record<string, unknown> = { type: s.type }
             if (s.x !== undefined) partial['x'] = s.x
@@ -116,6 +127,16 @@ export class VadeBridge {
         }
 
         case 'updateShapes': {
+          editor.run(() => {
+            for (const s of msg.shapes) {
+              const update: Record<string, unknown> = { id: s.id, type: s.type }
+              if (s.x !== undefined) update['x'] = s.x
+              if (s.y !== undefined) update['y'] = s.y
+              if (s.props) update['props'] = s.props
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              editor.updateShape(update as any)
+            }
+          })
           for (const s of msg.shapes) {
             const update: Record<string, unknown> = { id: s.id, type: s.type }
             if (s.x !== undefined) update['x'] = s.x
@@ -130,6 +151,7 @@ export class VadeBridge {
 
         case 'deleteShapes': {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          editor.run(() => editor.deleteShapes(msg.ids as any))
           editor.deleteShapes(msg.ids as any)
           this.reply(msg.id, true)
           break

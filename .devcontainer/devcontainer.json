@@ -1,0 +1,36 @@
+{
+  "name": "vade-core",
+  "image": "ghcr.io/vade-app/vade-runtime:latest",
+  "remoteUser": "node",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "forwardPorts": [5173, 7600],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite dev server",
+      "onAutoForward": "notify"
+    },
+    "7600": {
+      "label": "VADE MCP WebSocket bridge",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "npm install --no-audit --no-fund",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  },
+  "mounts": [
+    "source=vade-library,target=/home/node/.vade,type=volume"
+  ]
+}
