@@ -1,0 +1,29 @@
+# Cloudflare Pages configuration for the VADE canvas SPA.
+#
+# This file drives `wrangler pages deploy` (via `npm run deploy:web`) and
+# the Pages Git integration. It does NOT create the Pages project — the
+# BDFL must create the project in the Cloudflare dashboard first and
+# share `CLOUDFLARE_ACCOUNT_ID` + a scoped API token. See the
+# "BDFL provisioning checklist" in PR #6 for details.
+#
+# Refs:
+#   https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+#   Issue: https://github.com/vade-app/vade-core/issues/6
+
+name = "vade-core"
+compatibility_date = "2025-04-01"
+pages_build_output_dir = "./dist"
+
+# Static-only SPA for now — no Pages Functions, no bindings. When the
+# storage abstraction (issue #8) lands and needs edge KV / R2, add
+# `[[kv_namespaces]]` or `[[r2_buckets]]` blocks here.
+
+# Production environment — served at app.vade.dev once DNS + custom
+# domain are attached in the Pages dashboard (BDFL task).
+[env.production]
+name = "vade-core"
+
+# Preview environment — every non-production branch gets a
+# `<branch>.vade-core.pages.dev` URL automatically.
+[env.preview]
+name = "vade-core"

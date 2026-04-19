@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "mcp": "tsx mcp/index.ts",
-    "dev:all": "concurrently \"npm run dev\" \"npm run mcp\""
+    "dev:all": "concurrently \"npm run dev\" \"npm run mcp\"",
+    "deploy:web": "npm run build && wrangler pages deploy dist --project-name vade-core"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
