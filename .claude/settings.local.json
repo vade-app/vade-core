@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/venpopov/.claude/**)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/venpopov/.claude.json'\\)\\); print\\(d['projects']['/Users/venpopov/GitHub/vade-app/vade-core']['enabledMcpjsonServers']\\)\")",
+      "Bash(lsof -iTCP:7600 -sTCP:LISTEN)",
+      "Bash(grep -E \"claude$|tsx.*mcp\")",
+      "Bash(claude mcp *)",
+      "Bash(python3 -c ' *)",
+      "mcp__vade-canvas__getCanvasState",
+      "mcp__vade-canvas__listCanvases",
+      "mcp__vade-canvas__createShape",
+      "Bash(git commit -m ' *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git branch *)",
+      "Bash(git reset *)",
+      "Bash(git checkout *)",
+      "Bash(git push *)",
+      "Bash(gh pr *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "vade-canvas"
+  ]
+}
