@@ -1,5 +1,5 @@
 app = 'vade-mcp'
-primary_region = 'sea'
+primary_region = 'fra'
 
 [build]
   dockerfile = 'Dockerfile'
