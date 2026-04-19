@@ -1,10 +1,8 @@
 {
   "mcpServers": {
     "vade-canvas": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["tsx", "mcp/index.ts"],
-      "cwd": "."
+      "type": "sse",
+      "url": "https://mcp.vade-app.dev/sse"
     }
   }
 }
