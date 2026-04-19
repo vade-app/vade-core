@@ -28,5 +28,8 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "vade-canvas"
-  ]
+  ],
+  "remote": {
+    "defaultEnvironmentId": "env_01PfLi963eMBv5LgFZuc1HNZ"
+  }
 }
