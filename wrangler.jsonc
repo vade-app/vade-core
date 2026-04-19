@@ -2,6 +2,10 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "vade-core",
   "compatibility_date": "2026-04-19",
+  "routes": [
+    { "pattern": "vade-app.dev", "custom_domain": true },
+    { "pattern": "www.vade-app.dev", "custom_domain": true }
+  ],
   "observability": {
     "enabled": true
   },
