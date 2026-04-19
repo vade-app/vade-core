@@ -1,7 +1,7 @@
 import type { Editor } from '@tldraw/editor'
 import type { ServerMessage, ClientMessage } from './protocol'
 
-const WS_URL = `ws://${window.location.hostname}:7600`
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}:7600`
 
 export type BridgeStatus = 'disconnected' | 'connecting' | 'connected'
 type StatusListener = (status: BridgeStatus) => void
