@@ -1,0 +1,17 @@
+.git
+.github
+.claude
+.devcontainer
+node_modules
+dist
+.vade
+.env
+.env.*
+*.md
+src
+public
+index.html
+vite.config.ts
+wrangler.jsonc
+.mcp.json
+.gitignore

@@ -1,7 +1,13 @@
+import type { IncomingMessage, Server as HttpServer } from 'node:http'
+import type { Duplex } from 'node:stream'
 import { WebSocketServer, WebSocket } from 'ws'
 import type { ServerMessage, ClientMessage } from './protocol.js'
 
-const WS_PORT = 7600
+export const DEFAULT_WS_PORT = 7600
+
+export type CanvasBridgeOptions =
+  | { mode: 'standalone'; port?: number; host?: string }
+  | { mode: 'attached'; server: HttpServer; path: string }
 
 type PendingRequest = {
   resolve: (data: unknown) => void
@@ -11,11 +17,39 @@ type PendingRequest = {
 
 export class CanvasBridge {
   private wss: WebSocketServer
+  private mode: CanvasBridgeOptions['mode']
   private canvas: WebSocket | null = null
   private pending = new Map<string, PendingRequest>()
+  private upgradeHandler?: (req: IncomingMessage, socket: Duplex, head: Buffer) => void
+  private attachedServer?: HttpServer
 
-  constructor() {
-    this.wss = new WebSocketServer({ port: WS_PORT, host: '0.0.0.0' })
+  constructor(options: CanvasBridgeOptions = { mode: 'standalone' }) {
+    this.mode = options.mode
+
+    if (options.mode === 'standalone') {
+      const port = options.port ?? DEFAULT_WS_PORT
+      const host = options.host ?? '0.0.0.0'
+      this.wss = new WebSocketServer({ port, host })
+      console.error(`[bridge] WebSocket server listening on ${host}:${port}`)
+    } else {
+      this.wss = new WebSocketServer({ noServer: true })
+      this.attachedServer = options.server
+      const path = options.path
+      this.upgradeHandler = (req, socket, head) => {
+        if (!req.url) {
+          socket.destroy()
+          return
+        }
+        const url = new URL(req.url, 'http://localhost')
+        if (url.pathname !== path) return
+        this.wss.handleUpgrade(req, socket, head, (ws) => {
+          this.wss.emit('connection', ws, req)
+        })
+      }
+      options.server.on('upgrade', this.upgradeHandler)
+      console.error(`[bridge] WebSocket upgrade handler attached on path ${path}`)
+    }
+
     this.wss.on('connection', (ws) => {
       this.canvas = ws
       console.error(`[bridge] Canvas connected`)
@@ -39,8 +73,6 @@ export class CanvasBridge {
         }
       })
     })
-
-    console.error(`[bridge] WebSocket server listening on :${WS_PORT}`)
   }
 
   get isConnected(): boolean {
@@ -85,6 +117,9 @@ export class CanvasBridge {
   }
 
   async close() {
+    if (this.mode === 'attached' && this.attachedServer && this.upgradeHandler) {
+      this.attachedServer.off('upgrade', this.upgradeHandler)
+    }
     this.wss.close()
   }
 }

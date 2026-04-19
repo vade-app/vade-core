@@ -1,0 +1,36 @@
+app = 'vade-mcp'
+primary_region = 'sea'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  VADE_MCP_TRANSPORT = 'sse'
+  VADE_MCP_HTTP_PORT = '8080'
+  VADE_LIBRARY_PATH = '/home/node/.vade/library'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/healthz'
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512
+
+# Enable once the storage-abstraction sub-issue lands and a
+# `vade_library` volume has been created via `flyctl volumes create`.
+# [[mounts]]
+#   source = 'vade_library'
+#   destination = '/home/node/.vade'
