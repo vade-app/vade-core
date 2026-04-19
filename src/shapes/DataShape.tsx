@@ -2,16 +2,19 @@ import {
   BaseBoxShapeUtil,
   HTMLContainer,
   T,
-  type TLBaseBoxShape,
 } from '@tldraw/editor'
 
-export type DataShape = TLBaseBoxShape & {
-  type: 'vade-data'
-  props: TLBaseBoxShape['props'] & {
-    data: string
-    label: string
-  }
+type DataShapeProps = {
+  w: number
+  h: number
+  data: string
+  label: string
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DataShape = any
+
+export type { DataShape }
 
 function renderValue(value: unknown, depth: number): JSX.Element {
   if (value === null || value === undefined) {
@@ -68,7 +71,7 @@ export class DataShapeUtil extends BaseBoxShapeUtil<DataShape> {
     label: T.string,
   }
 
-  getDefaultProps(): DataShape['props'] {
+  getDefaultProps(): DataShapeProps {
     return {
       w: 280,
       h: 180,
@@ -77,7 +80,7 @@ export class DataShapeUtil extends BaseBoxShapeUtil<DataShape> {
     }
   }
 
-  component(shape: DataShape) {
+  component(shape: { props: DataShapeProps }) {
     const { data, label } = shape.props
 
     let parsed: unknown
@@ -127,7 +130,7 @@ export class DataShapeUtil extends BaseBoxShapeUtil<DataShape> {
     )
   }
 
-  indicator(shape: DataShape) {
+  indicator(shape: { props: { w: number; h: number } }) {
     return (
       <rect
         width={shape.props.w}

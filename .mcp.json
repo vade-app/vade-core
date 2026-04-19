@@ -1,5 +1,11 @@
 {
   "mcpServers": {
+    "vade-canvas": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "mcp/index.ts"],
+      "cwd": "."
+    },
     "mem0": {
       "type": "http",
       "url": "https://mcp.mem0.ai/mcp"
