@@ -17,6 +17,14 @@ function ConnectionIndicator() {
     connected: '#a6e3a1',
     connecting: '#f9e2af',
     disconnected: '#f38ba8',
+    'no-bridge': '#6c7086',
+  }
+
+  const labels: Record<BridgeStatus, string> = {
+    connected: 'MCP',
+    connecting: 'connecting...',
+    disconnected: 'offline',
+    'no-bridge': 'no bridge',
   }
 
   return (
@@ -47,7 +55,7 @@ function ConnectionIndicator() {
           background: colors[status],
         }}
       />
-      {status === 'connected' ? 'MCP' : status === 'connecting' ? 'connecting...' : 'offline'}
+      {labels[status]}
     </div>
   )
 }
