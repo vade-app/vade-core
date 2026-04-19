@@ -5,7 +5,22 @@ const WS_URL =
   (import.meta.env.VITE_BRIDGE_URL as string | undefined) ??
   `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}:7600`
 
-export type BridgeStatus = 'disconnected' | 'connecting' | 'connected'
+const isLocalHostname = (hostname: string): boolean => {
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') return true
+  if (hostname.endsWith('.local')) return true
+  if (/^10\./.test(hostname)) return true
+  if (/^192\.168\./.test(hostname)) return true
+  if (/^172\.(1[6-9]|2[0-9]|3[01])\./.test(hostname)) return true
+  return false
+}
+
+const shouldAttemptBridge = (): boolean => {
+  if (import.meta.env.VITE_BRIDGE_URL) return true
+  if (import.meta.env.DEV) return true
+  return isLocalHostname(window.location.hostname)
+}
+
+export type BridgeStatus = 'disconnected' | 'connecting' | 'connected' | 'no-bridge'
 type StatusListener = (status: BridgeStatus) => void
 
 export class VadeBridge {
@@ -18,6 +33,10 @@ export class VadeBridge {
 
   connect(editor: Editor) {
     this.editor = editor
+    if (!shouldAttemptBridge()) {
+      this.setStatus('no-bridge')
+      return
+    }
     this.tryConnect()
   }
 
