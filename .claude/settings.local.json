@@ -22,7 +22,15 @@
       "mcp__vade-canvas__createBindings",
       "mcp__vade-canvas__deleteShapes",
       "mcp__vade-canvas__queryShapes",
-      "mcp__vade-canvas__updateShape"
+      "mcp__vade-canvas__updateShape",
+      "Bash(git *)",
+      "Bash(curl -sI https://mcp.vade.dev/healthz)",
+      "Bash(curl -sIv https://mcp.vade.dev/healthz)",
+      "Bash(curl -sI https://vade-mcp.fly.dev/healthz)",
+      "Bash(host mcp.vade.dev)",
+      "Bash(host vade-mcp.fly.dev)",
+      "Bash(curl -s https://vade-mcp.fly.dev/healthz)",
+      "Bash(curl -sI -X GET --max-time 3 https://vade-mcp.fly.dev/sse)"
     ]
   },
   "enableAllProjectMcpServers": true,

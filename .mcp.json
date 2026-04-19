@@ -2,7 +2,7 @@
   "mcpServers": {
     "vade-canvas": {
       "type": "sse",
-      "url": "https://mcp.vade.dev/sse"
+      "url": "https://mcp.vade-app.dev/sse"
     }
   }
 }
