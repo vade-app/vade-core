@@ -75,9 +75,18 @@ async function runSse() {
         `[vade-canvas] SSE session open ${sessionId} on ${machineId || 'local'} (total=${sessions.size})`,
       )
 
+      // Fly-proxy closes idle HTTP connections at 60s. Send an SSE
+      // comment frame periodically so the stream has traffic and the
+      // edge keeps it alive.
+      const heartbeat = setInterval(() => {
+        if (res.writableEnded) return
+        res.write(':\n\n')
+      }, 25_000)
+
       const cleanup = () => {
         if (!sessions.has(sessionId)) return
         sessions.delete(sessionId)
+        clearInterval(heartbeat)
         console.error(`[vade-canvas] SSE session close ${sessionId} (total=${sessions.size})`)
         void server.close().catch(() => {})
       }

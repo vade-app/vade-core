@@ -37,7 +37,8 @@
       "Bash(./node_modules/.bin/tsc -b)",
       "Bash(npm install *)",
       "mcp__vade-canvas__createBatch",
-      "Bash(flyctl releases *)"
+      "Bash(flyctl releases *)",
+      "Bash(npm run *)"
     ]
   },
   "enableAllProjectMcpServers": true,
