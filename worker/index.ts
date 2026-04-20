@@ -3,7 +3,7 @@ import { handleLibrary } from './library.js'
 export interface Env {
   ASSETS: Fetcher
   LIBRARY_R2: R2Bucket
-  LIBRARY_D1: D1Database
+  vade_library: D1Database
   LIBRARY_BEARER: string
 }
 

@@ -110,14 +110,14 @@ export async function handleLibrary(req: Request, env: Env, url: URL): Promise<R
 }
 
 async function listCanvases(env: Env): Promise<Response> {
-  const { results } = await env.LIBRARY_D1
+  const { results } = await env.vade_library
     .prepare('SELECT slug, name, tags, description, created, modified FROM canvases ORDER BY modified DESC')
     .all<CanvasRow>()
   return json(results.map(canvasMetaFromRow))
 }
 
 async function getCanvas(env: Env, slug: string): Promise<Response> {
-  const row = await env.LIBRARY_D1
+  const row = await env.vade_library
     .prepare('SELECT slug, name, tags, description, created, modified FROM canvases WHERE slug = ?')
     .bind(slug)
     .first<CanvasRow>()
@@ -136,14 +136,14 @@ async function putCanvas(env: Env, slug: string, body: unknown): Promise<Respons
   const description = typeof b.description === 'string' ? b.description : ''
   const now = new Date().toISOString()
 
-  const existing = await env.LIBRARY_D1
+  const existing = await env.vade_library
     .prepare('SELECT created FROM canvases WHERE slug = ?')
     .bind(slug)
     .first<{ created: string }>()
   const created = existing?.created ?? now
 
   await env.LIBRARY_R2.put(canvasKey(slug), JSON.stringify(b.snapshot))
-  await env.LIBRARY_D1
+  await env.vade_library
     .prepare(
       `INSERT INTO canvases (slug, name, tags, description, created, modified)
        VALUES (?, ?, ?, ?, ?, ?)
@@ -160,14 +160,14 @@ async function putCanvas(env: Env, slug: string, body: unknown): Promise<Respons
 }
 
 async function listEntities(env: Env): Promise<Response> {
-  const { results } = await env.LIBRARY_D1
+  const { results } = await env.vade_library
     .prepare('SELECT slug, name, tags, description FROM entities ORDER BY name')
     .all<EntityRow>()
   return json(results.map(entityMetaFromRow))
 }
 
 async function getEntity(env: Env, slug: string): Promise<Response> {
-  const row = await env.LIBRARY_D1
+  const row = await env.vade_library
     .prepare('SELECT slug, name, tags, description FROM entities WHERE slug = ?')
     .bind(slug)
     .first<EntityRow>()
@@ -186,7 +186,7 @@ async function putEntity(env: Env, slug: string, body: unknown): Promise<Respons
   const description = typeof b.description === 'string' ? b.description : ''
 
   await env.LIBRARY_R2.put(entityKey(slug), JSON.stringify(b.shapes))
-  await env.LIBRARY_D1
+  await env.vade_library
     .prepare(
       `INSERT INTO entities (slug, name, tags, description)
        VALUES (?, ?, ?, ?)
@@ -206,7 +206,7 @@ async function search(env: Env, query: string): Promise<Response> {
   // LIKE on name/description/tags (tags are JSON-encoded, so
   // substring hits the raw JSON which is fine for single-user scale).
   const q = `%${query.toLowerCase()}%`
-  const canvasQ = env.LIBRARY_D1
+  const canvasQ = env.vade_library
     .prepare(
       `SELECT slug, name, tags, description, created, modified FROM canvases
        WHERE lower(name) LIKE ? OR lower(description) LIKE ? OR lower(tags) LIKE ?
@@ -214,7 +214,7 @@ async function search(env: Env, query: string): Promise<Response> {
     )
     .bind(q, q, q)
     .all<CanvasRow>()
-  const entityQ = env.LIBRARY_D1
+  const entityQ = env.vade_library
     .prepare(
       `SELECT slug, name, tags, description FROM entities
        WHERE lower(name) LIKE ? OR lower(description) LIKE ? OR lower(tags) LIKE ?
