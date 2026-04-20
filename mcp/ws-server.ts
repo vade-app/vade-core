@@ -2,18 +2,36 @@ import type { IncomingMessage, Server as HttpServer } from 'node:http'
 import type { Duplex } from 'node:stream'
 import { WebSocketServer, WebSocket } from 'ws'
 import type { ServerMessage, ClientMessage } from './protocol.js'
+import { CLIENT_SUBPROTOCOL, type Principal } from './auth.js'
 
 export const DEFAULT_WS_PORT = 7600
 
+export type VerifyUpgradeResult =
+  | { ok: true; principal: Principal }
+  | { ok: false; reason?: string }
+
+export type VerifyUpgrade = (req: IncomingMessage) => VerifyUpgradeResult
+
 export type CanvasBridgeOptions =
   | { mode: 'standalone'; port?: number; host?: string }
-  | { mode: 'attached'; server: HttpServer; path: string }
+  | { mode: 'attached'; server: HttpServer; path: string; verify?: VerifyUpgrade }
 
 type PendingRequest = {
   resolve: (data: unknown) => void
   reject: (err: Error) => void
   timer: ReturnType<typeof setTimeout>
 }
+
+function handleProtocols(protocols: Set<string>): string | false {
+  return protocols.has(CLIENT_SUBPROTOCOL) ? CLIENT_SUBPROTOCOL : false
+}
+
+// 4000–4999 is reserved for application-specific close codes; 4401
+// mirrors HTTP 401 so the client can distinguish auth failure from a
+// transient network disconnect. Writing a raw HTTP/1.1 401 here would
+// surface in the browser as code 1006 (abnormal close) with no way
+// to tell it apart from a dropped connection.
+const CLOSE_CODE_UNAUTHORIZED = 4401
 
 export class CanvasBridge {
   private wss: WebSocketServer
@@ -29,10 +47,11 @@ export class CanvasBridge {
     if (options.mode === 'standalone') {
       const port = options.port ?? DEFAULT_WS_PORT
       const host = options.host ?? '0.0.0.0'
-      this.wss = new WebSocketServer({ port, host })
+      this.wss = new WebSocketServer({ port, host, handleProtocols })
       console.error(`[bridge] WebSocket server listening on ${host}:${port}`)
     } else {
-      this.wss = new WebSocketServer({ noServer: true })
+      const verify = options.verify
+      this.wss = new WebSocketServer({ noServer: true, handleProtocols })
       this.attachedServer = options.server
       const path = options.path
       this.upgradeHandler = (req, socket, head) => {
@@ -42,12 +61,29 @@ export class CanvasBridge {
         }
         const url = new URL(req.url, 'http://localhost')
         if (url.pathname !== path) return
+        const result = verify?.(req)
+        if (result && !result.ok) {
+          // Accept the handshake so we can send a WS close frame with a
+          // readable code instead of dropping the socket (which browsers
+          // report as 1006 and can't distinguish from a network blip).
+          this.wss.handleUpgrade(req, socket, head, (ws) => {
+            ws.close(CLOSE_CODE_UNAUTHORIZED, result.reason ?? 'Unauthorized')
+          })
+          return
+        }
+        if (result) {
+          console.error(
+            `[bridge] auth ok: ${result.principal.role} ${result.principal.tokenId}`,
+          )
+        }
         this.wss.handleUpgrade(req, socket, head, (ws) => {
           this.wss.emit('connection', ws, req)
         })
       }
       options.server.on('upgrade', this.upgradeHandler)
-      console.error(`[bridge] WebSocket upgrade handler attached on path ${path}`)
+      console.error(
+        `[bridge] WebSocket upgrade handler attached on path ${path}${verify ? ' (auth required)' : ''}`,
+      )
     }
 
     this.wss.on('connection', (ws) => {

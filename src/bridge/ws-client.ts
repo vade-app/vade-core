@@ -5,6 +5,9 @@ const WS_URL =
   (import.meta.env.VITE_BRIDGE_URL as string | undefined) ??
   `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}:7600`
 
+const CLIENT_SUBPROTOCOL = 'vade-canvas'
+const TOKEN_SUBPROTOCOL_PREFIX = 'vade-auth.'
+
 const isLocalHostname = (hostname: string): boolean => {
   if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') return true
   if (hostname.endsWith('.local')) return true
@@ -20,7 +23,7 @@ const shouldAttemptBridge = (): boolean => {
   return isLocalHostname(window.location.hostname)
 }
 
-export type BridgeStatus = 'disconnected' | 'connecting' | 'connected' | 'no-bridge'
+export type BridgeStatus = 'disconnected' | 'connecting' | 'connected' | 'no-bridge' | 'unauthorized'
 type StatusListener = (status: BridgeStatus) => void
 
 export class VadeBridge {
@@ -30,6 +33,11 @@ export class VadeBridge {
   private listeners: StatusListener[] = []
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private reconnectDelay = 1000
+  private token: string | null
+
+  constructor(token: string | null = null) {
+    this.token = token && token.trim() ? token.trim() : null
+  }
 
   connect(editor: Editor) {
     this.editor = editor
@@ -60,9 +68,14 @@ export class VadeBridge {
     }
 
     this.setStatus('connecting')
-    const ws = new WebSocket(WS_URL)
+    const protocols = this.token
+      ? [CLIENT_SUBPROTOCOL, `${TOKEN_SUBPROTOCOL_PREFIX}${this.token}`]
+      : undefined
+    const ws = protocols ? new WebSocket(WS_URL, protocols) : new WebSocket(WS_URL)
+    let didOpen = false
 
     ws.onopen = () => {
+      didOpen = true
       this.ws = ws
       this.reconnectDelay = 1000
       this.setStatus('connected')
@@ -80,8 +93,19 @@ export class VadeBridge {
       }
     }
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
       this.ws = null
+      // Happy path: the server accepts the WS upgrade and then closes
+      // with 4401 on auth failure. Fallback: if the handshake itself
+      // never completed (didOpen === false) but we had a token and
+      // the browser is online, treat code 1006 as auth failure too —
+      // a dropped/proxied upgrade can leave us without the 4401 frame.
+      const failedHandshakeWithToken =
+        !!this.token && !didOpen && event.code === 1006 && navigator.onLine
+      if (event.code === 4401 || event.code === 1008 || failedHandshakeWithToken) {
+        this.setStatus('unauthorized')
+        return
+      }
       this.setStatus('disconnected')
       this.scheduleReconnect()
     }
