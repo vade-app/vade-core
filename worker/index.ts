@@ -5,6 +5,7 @@ export interface Env {
   LIBRARY_R2: R2Bucket
   vade_library: D1Database
   LIBRARY_BEARER: string
+  OPERATOR_TOKENS?: string
 }
 
 export default {

@@ -65,10 +65,26 @@ function entityKey(slug: string): string {
   return `entities/${slug}/shapes.json`
 }
 
+function isAuthorized(auth: string, env: Env): boolean {
+  if (!auth.startsWith('Bearer ')) return false
+  const token = auth.slice('Bearer '.length)
+  if (!token) return false
+  if (env.LIBRARY_BEARER && token === env.LIBRARY_BEARER) return true
+  if (env.OPERATOR_TOKENS) {
+    try {
+      const parsed = JSON.parse(env.OPERATOR_TOKENS) as { operator?: unknown; agents?: unknown }
+      const operator = Array.isArray(parsed.operator) ? (parsed.operator as string[]) : []
+      const agents = Array.isArray(parsed.agents) ? (parsed.agents as string[]) : []
+      if (operator.includes(token) || agents.includes(token)) return true
+    } catch {
+      // malformed secret — treat as no extra tokens
+    }
+  }
+  return false
+}
+
 export async function handleLibrary(req: Request, env: Env, url: URL): Promise<Response> {
-  const auth = req.headers.get('Authorization') ?? ''
-  const expected = `Bearer ${env.LIBRARY_BEARER}`
-  if (!env.LIBRARY_BEARER || auth !== expected) {
+  if (!isAuthorized(req.headers.get('Authorization') ?? '', env)) {
     return text('Unauthorized', 401)
   }
 
