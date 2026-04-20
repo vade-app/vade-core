@@ -13,9 +13,9 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
       description: z.string().optional().describe('What this canvas contains'),
     },
   }, async ({ name, tags, description }) => {
-    const snapshot = await bridge.send({ type: 'getSnapshot', id: makeId() })
+    const summary = await bridge.send({ type: 'getSnapshot', id: makeId() }) as { snapshot: unknown }
     const store = await getStore()
-    const meta = await store.saveCanvas(name, snapshot, tags ?? [], description ?? '')
+    const meta = await store.saveCanvas(name, summary.snapshot, tags ?? [], description ?? '')
     return { content: [{ type: 'text' as const, text: `Saved canvas "${name}"\n${JSON.stringify(meta, null, 2)}` }] }
   })
 
