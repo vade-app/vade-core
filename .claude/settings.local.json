@@ -51,7 +51,9 @@
       "Bash(gh api *)",
       "Bash(flyctl scale *)",
       "mcp__claude_ai_tldraw__exec",
-      "mcp__vade-canvas__loadCanvas"
+      "mcp__vade-canvas__loadCanvas",
+      "Bash(mkdir -p /root/.claude/plans)",
+      "Read(//root/.claude/plans/**)"
     ]
   },
   "enableAllProjectMcpServers": true,
