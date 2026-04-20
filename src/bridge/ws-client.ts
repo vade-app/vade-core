@@ -95,9 +95,14 @@ export class VadeBridge {
 
     ws.onclose = (event) => {
       this.ws = null
+      // Happy path: the server accepts the WS upgrade and then closes
+      // with 4401 on auth failure. Fallback: if the handshake itself
+      // never completed (didOpen === false) but we had a token and
+      // the browser is online, treat code 1006 as auth failure too —
+      // a dropped/proxied upgrade can leave us without the 4401 frame.
       const failedHandshakeWithToken =
         !!this.token && !didOpen && event.code === 1006 && navigator.onLine
-      if (event.code === 1008 || event.code === 4401 || failedHandshakeWithToken) {
+      if (event.code === 4401 || event.code === 1008 || failedHandshakeWithToken) {
         this.setStatus('unauthorized')
         return
       }

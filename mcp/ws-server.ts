@@ -26,17 +26,12 @@ function handleProtocols(protocols: Set<string>): string | false {
   return protocols.has(CLIENT_SUBPROTOCOL) ? CLIENT_SUBPROTOCOL : false
 }
 
-function rejectUnauthorized(socket: Duplex, reason?: string): void {
-  const body = reason ?? 'Unauthorized'
-  socket.write(
-    `HTTP/1.1 401 Unauthorized\r\n` +
-      `Content-Type: text/plain\r\n` +
-      `Content-Length: ${Buffer.byteLength(body)}\r\n` +
-      `Connection: close\r\n\r\n` +
-      body,
-  )
-  socket.destroy()
-}
+// 4000–4999 is reserved for application-specific close codes; 4401
+// mirrors HTTP 401 so the client can distinguish auth failure from a
+// transient network disconnect. Writing a raw HTTP/1.1 401 here would
+// surface in the browser as code 1006 (abnormal close) with no way
+// to tell it apart from a dropped connection.
+const CLOSE_CODE_UNAUTHORIZED = 4401
 
 export class CanvasBridge {
   private wss: WebSocketServer
@@ -48,7 +43,6 @@ export class CanvasBridge {
 
   constructor(options: CanvasBridgeOptions = { mode: 'standalone' }) {
     this.mode = options.mode
-    const verify = options.verify
 
     if (options.mode === 'standalone') {
       const port = options.port ?? DEFAULT_WS_PORT
@@ -56,6 +50,7 @@ export class CanvasBridge {
       this.wss = new WebSocketServer({ port, host, handleProtocols })
       console.error(`[bridge] WebSocket server listening on ${host}:${port}`)
     } else {
+      const verify = options.verify
       this.wss = new WebSocketServer({ noServer: true, handleProtocols })
       this.attachedServer = options.server
       const path = options.path
@@ -66,12 +61,17 @@ export class CanvasBridge {
         }
         const url = new URL(req.url, 'http://localhost')
         if (url.pathname !== path) return
-        if (verify) {
-          const result = verify(req)
-          if (!result.ok) {
-            rejectUnauthorized(socket, result.reason)
-            return
-          }
+        const result = verify?.(req)
+        if (result && !result.ok) {
+          // Accept the handshake so we can send a WS close frame with a
+          // readable code instead of dropping the socket (which browsers
+          // report as 1006 and can't distinguish from a network blip).
+          this.wss.handleUpgrade(req, socket, head, (ws) => {
+            ws.close(CLOSE_CODE_UNAUTHORIZED, result.reason ?? 'Unauthorized')
+          })
+          return
+        }
+        if (result) {
           console.error(
             `[bridge] auth ok: ${result.principal.role} ${result.principal.tokenId}`,
           )
