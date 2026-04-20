@@ -30,7 +30,14 @@
       "Bash(host mcp.vade.dev)",
       "Bash(host vade-mcp.fly.dev)",
       "Bash(curl -s https://vade-mcp.fly.dev/healthz)",
-      "Bash(curl -sI -X GET --max-time 3 https://vade-mcp.fly.dev/sse)"
+      "Bash(curl -sI -X GET --max-time 3 https://vade-mcp.fly.dev/sse)",
+      "Bash(curl *)",
+      "Bash(tee /tmp/mcp-probe.txt)",
+      "Bash(flyctl status *)",
+      "Bash(./node_modules/.bin/tsc -b)",
+      "Bash(npm install *)",
+      "mcp__vade-canvas__createBatch",
+      "Bash(flyctl releases *)"
     ]
   },
   "enableAllProjectMcpServers": true,
