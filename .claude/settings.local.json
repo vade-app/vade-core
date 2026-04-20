@@ -45,7 +45,9 @@
       "mcp__vade-canvas__saveCanvas",
       "Bash(gh run *)",
       "Bash(gh project *)",
-      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(i['content']['number'],i['id'],i.get\\('status','?'\\),i['content']['title']\\) for i in d['items'] if i.get\\('content',{}\\).get\\('number'\\) in \\(5,7,8,9,10,11\\)]\")"
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(i['content']['number'],i['id'],i.get\\('status','?'\\),i['content']['title']\\) for i in d['items'] if i.get\\('content',{}\\).get\\('number'\\) in \\(5,7,8,9,10,11\\)]\")",
+      "mcp__claude_ai_Customgithub__issue_read",
+      "WebFetch(domain:github.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

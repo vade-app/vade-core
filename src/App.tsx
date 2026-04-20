@@ -1,23 +1,36 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { customShapeUtils } from './shapes'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
 
-const bridge = new VadeBridge()
+const TOKEN_STORAGE_KEY = 'vade-auth-token'
 
-function ConnectionIndicator() {
+const requiresAuth = !import.meta.env.DEV
+
+function readStoredToken(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const v = window.localStorage.getItem(TOKEN_STORAGE_KEY)
+    return v && v.trim() ? v.trim() : null
+  } catch {
+    return null
+  }
+}
+
+function ConnectionIndicator({ bridge, onClearToken }: { bridge: VadeBridge; onClearToken: () => void }) {
   const [status, setStatus] = useState<BridgeStatus>('disconnected')
 
   useEffect(() => {
     return bridge.onStatusChange(setStatus)
-  }, [])
+  }, [bridge])
 
   const colors: Record<BridgeStatus, string> = {
     connected: '#a6e3a1',
     connecting: '#f9e2af',
     disconnected: '#f38ba8',
     'no-bridge': '#6c7086',
+    unauthorized: '#f38ba8',
   }
 
   const labels: Record<BridgeStatus, string> = {
@@ -25,10 +38,14 @@ function ConnectionIndicator() {
     connecting: 'connecting...',
     disconnected: 'offline',
     'no-bridge': 'no bridge',
+    unauthorized: 'bad token',
   }
+
+  const interactive = status === 'unauthorized'
 
   return (
     <div
+      onClick={interactive ? onClearToken : undefined}
       style={{
         position: 'fixed',
         bottom: 12,
@@ -43,9 +60,11 @@ function ConnectionIndicator() {
         color: colors[status],
         fontSize: 11,
         fontFamily: 'ui-monospace, monospace',
-        pointerEvents: 'none',
+        pointerEvents: interactive ? 'auto' : 'none',
+        cursor: interactive ? 'pointer' : 'default',
         backdropFilter: 'blur(8px)',
       }}
+      title={interactive ? 'Click to re-enter token' : undefined}
     >
       <div
         style={{
@@ -60,8 +79,112 @@ function ConnectionIndicator() {
   )
 }
 
+function TokenGate({ onSubmit }: { onSubmit: (token: string) => void }) {
+  const [value, setValue] = useState('')
+  const trimmed = value.trim()
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#1e1e2e',
+        color: '#cdd6f4',
+        fontFamily: 'ui-monospace, monospace',
+        padding: 24,
+      }}
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (trimmed) onSubmit(trimmed)
+        }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          width: '100%',
+          maxWidth: 420,
+        }}
+      >
+        <div style={{ fontSize: 14, fontWeight: 600 }}>VADE</div>
+        <label htmlFor="vade-token" style={{ fontSize: 12, color: '#a6adc8' }}>
+          Paste your operator token to continue
+        </label>
+        <input
+          id="vade-token"
+          type="password"
+          autoFocus
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          style={{
+            padding: '10px 12px',
+            borderRadius: 8,
+            border: '1px solid #45475a',
+            background: '#181825',
+            color: '#cdd6f4',
+            fontFamily: 'ui-monospace, monospace',
+            fontSize: 13,
+          }}
+        />
+        <button
+          type="submit"
+          disabled={!trimmed}
+          style={{
+            padding: '10px 12px',
+            borderRadius: 8,
+            border: 'none',
+            background: trimmed ? '#89b4fa' : '#45475a',
+            color: '#11111b',
+            fontFamily: 'inherit',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: trimmed ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Connect
+        </button>
+      </form>
+    </div>
+  )
+}
+
 export default function App() {
+  const [token, setToken] = useState<string | null>(() => (requiresAuth ? readStoredToken() : null))
+
+  const bridge = useMemo(() => new VadeBridge(token), [token])
   const bridgeRef = useRef(bridge)
+  bridgeRef.current = bridge
+
+  if (requiresAuth && !token) {
+    return (
+      <TokenGate
+        onSubmit={(t) => {
+          try {
+            window.localStorage.setItem(TOKEN_STORAGE_KEY, t)
+          } catch {
+            // ignore — session-only use still works
+          }
+          setToken(t)
+        }}
+      />
+    )
+  }
+
+  const clearToken = () => {
+    try {
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY)
+    } catch {
+      // ignore
+    }
+    bridge.disconnect()
+    setToken(null)
+  }
 
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
@@ -72,7 +195,7 @@ export default function App() {
           bridgeRef.current.connect(editor)
         }}
       />
-      <ConnectionIndicator />
+      <ConnectionIndicator bridge={bridge} onClearToken={clearToken} />
     </div>
   )
 }

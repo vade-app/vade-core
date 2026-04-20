@@ -13,6 +13,10 @@ primary_region = 'fra'
 
 # VADE_LIBRARY_BEARER is set via `flyctl secrets set` — must match the
 # Worker's LIBRARY_BEARER (`wrangler secret put LIBRARY_BEARER`).
+#
+# VADE_AUTH_TOKENS is set via `flyctl secrets set` — JSON of shape
+# `{"operator":["..."],"agents":["..."]}`. Required in SSE mode; the
+# process exits at startup if unset. See docs/auth.md.
 
 [http_service]
   internal_port = 8080

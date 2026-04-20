@@ -3,6 +3,13 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
 import { CanvasBridge, DEFAULT_WS_PORT } from './ws-server.js'
+import {
+  loadAuthConfig,
+  verifyBearer,
+  verifySubprotocols,
+  type AuthConfig,
+  type Principal,
+} from './auth.js'
 import { registerShapeTools } from './tools/shapes.js'
 import { registerCanvasTools } from './tools/canvas.js'
 import { registerRuntimeTools } from './tools/runtime.js'
@@ -23,11 +30,33 @@ async function runStdio() {
   console.error(`[vade-canvas] MCP server running on stdio, WebSocket bridge on :${DEFAULT_WS_PORT}`)
 }
 
+function requireBearer(
+  req: IncomingMessage,
+  res: ServerResponse,
+  cfg: AuthConfig,
+): Principal | null {
+  const principal = verifyBearer(req.headers['authorization'], cfg)
+  if (!principal) {
+    res.writeHead(401, {
+      'Content-Type': 'text/plain',
+      'WWW-Authenticate': 'Bearer realm="vade-canvas"',
+    })
+    res.end('Unauthorized')
+    return null
+  }
+  return principal
+}
+
 async function runSse() {
   const port = Number(process.env['VADE_MCP_HTTP_PORT'] ?? 8080)
   const messagesPath = '/messages'
   const ssePath = '/sse'
   const canvasPath = '/canvas'
+
+  const auth = loadAuthConfig(process.env['VADE_AUTH_TOKENS'])
+  console.error(
+    `[vade-canvas] auth loaded: ${auth.operator.length} operator, ${auth.agents.length} agent token(s)`,
+  )
 
   // On Fly.io, sessions live in per-machine memory. Advertise a
   // machine-scoped endpoint so the client's POST can be replayed to
@@ -41,12 +70,23 @@ async function runSse() {
   const setCors = (res: ServerResponse) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Mcp-Session-Id')
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Mcp-Session-Id')
     res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id')
   }
 
   const httpServer = createServer()
-  const bridge = new CanvasBridge({ mode: 'attached', server: httpServer, path: canvasPath })
+  const bridge = new CanvasBridge({
+    mode: 'attached',
+    server: httpServer,
+    path: canvasPath,
+    verify: (req) => {
+      const header = req.headers['sec-websocket-protocol']
+      const value = Array.isArray(header) ? header.join(',') : header
+      const result = verifySubprotocols(value, auth)
+      if (!result) return { ok: false, reason: 'Unauthorized' }
+      return { ok: true, principal: result.principal }
+    },
+  })
 
   httpServer.on('request', async (req: IncomingMessage, res: ServerResponse) => {
     setCors(res)
@@ -66,13 +106,16 @@ async function runSse() {
     }
 
     if (req.method === 'GET' && url.pathname === ssePath) {
+      const principal = requireBearer(req, res, auth)
+      if (!principal) return
+
       const transport = new SSEServerTransport(scopedMessagesPath, res)
       const server = buildServer(bridge)
 
       const sessionId = transport.sessionId
       sessions.set(sessionId, { server, transport })
       console.error(
-        `[vade-canvas] SSE session open ${sessionId} on ${machineId || 'local'} (total=${sessions.size})`,
+        `[vade-canvas] SSE session open ${sessionId} (${principal.role} ${principal.tokenId}) on ${machineId || 'local'} (total=${sessions.size})`,
       )
 
       // Fly-proxy closes idle HTTP connections at 60s. Send an SSE
@@ -103,6 +146,8 @@ async function runSse() {
     }
 
     if (req.method === 'POST' && url.pathname.startsWith(messagesPath)) {
+      if (!requireBearer(req, res, auth)) return
+
       // Path shape: `/messages` or `/messages/<machineId>`. If the
       // client's target machine isn't us, hand off to Fly's proxy —
       // it will replay the request (body included) to that instance.
