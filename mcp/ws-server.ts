@@ -13,7 +13,7 @@ export type VerifyUpgradeResult =
 export type VerifyUpgrade = (req: IncomingMessage) => VerifyUpgradeResult
 
 export type CanvasBridgeOptions =
-  | { mode: 'standalone'; port?: number; host?: string; verify?: VerifyUpgrade }
+  | { mode: 'standalone'; port?: number; host?: string }
   | { mode: 'attached'; server: HttpServer; path: string; verify?: VerifyUpgrade }
 
 type PendingRequest = {
