@@ -11,7 +11,9 @@
     "mcp:stdio": "tsx mcp/index.ts",
     "mcp:sse": "VADE_MCP_TRANSPORT=sse VADE_MCP_HTTP_PORT=8080 tsx mcp/index.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run mcp\"",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "migrate-library": "tsx scripts/migrate-library.ts",
+    "typecheck:worker": "tsc -p tsconfig.worker.json"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.32.3",
+    "@cloudflare/workers-types": "^4.20260420.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/ws": "^8.18.1",

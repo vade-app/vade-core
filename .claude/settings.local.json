@@ -38,7 +38,8 @@
       "Bash(npm install *)",
       "mcp__vade-canvas__createBatch",
       "Bash(flyctl releases *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(gh issue *)"
     ]
   },
   "enableAllProjectMcpServers": true,

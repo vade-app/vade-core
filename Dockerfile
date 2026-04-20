@@ -1,10 +1,5 @@
 FROM node:20.19.1-bookworm-slim
 
-# Ephemeral today; backed by a Fly volume once storage-abstraction lands.
-RUN mkdir -p /home/node/.vade/library/canvases \
-             /home/node/.vade/library/entities \
-    && chown -R node:node /home/node/.vade
-
 USER node
 WORKDIR /app
 
@@ -23,7 +18,8 @@ RUN npx tsc -p tsconfig.mcp.build.json \
 
 ENV VADE_MCP_TRANSPORT=sse
 ENV VADE_MCP_HTTP_PORT=8080
-ENV VADE_LIBRARY_PATH=/home/node/.vade/library
+ENV VADE_LIBRARY_DRIVER=cloud
+ENV VADE_LIBRARY_API_URL=https://vade-app.dev/library
 ENV NODE_ENV=production
 ENV VITE_BRIDGE_URL=wss://mcp.vade-app.dev/canvas
 

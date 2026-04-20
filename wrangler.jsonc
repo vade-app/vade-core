@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "vade-core",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-04-19",
   "routes": [
     { "pattern": "vade-app.dev", "custom_domain": true },
@@ -10,9 +11,26 @@
     "enabled": true
   },
   "assets": {
-    "not_found_handling": "single-page-application"
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "r2_buckets": [
+    {
+      "binding": "LIBRARY_R2",
+      "bucket_name": "vade-library"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "LIBRARY_D1",
+      "database_name": "vade-library",
+      "database_id": "REPLACE_WITH_D1_ID",
+      "migrations_dir": "migrations"
+    }
   ]
 }
