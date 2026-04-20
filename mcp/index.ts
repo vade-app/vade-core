@@ -29,6 +29,12 @@ async function runSse() {
   const ssePath = '/sse'
   const canvasPath = '/canvas'
 
+  // On Fly.io, sessions live in per-machine memory. Advertise a
+  // machine-scoped endpoint so the client's POST can be replayed to
+  // the instance holding the SSE connection via `fly-replay`.
+  const machineId = process.env['FLY_MACHINE_ID'] ?? ''
+  const scopedMessagesPath = machineId ? `${messagesPath}/${machineId}` : messagesPath
+
   type Session = { server: McpServer; transport: SSEServerTransport }
   const sessions = new Map<string, Session>()
 
@@ -60,12 +66,14 @@ async function runSse() {
     }
 
     if (req.method === 'GET' && url.pathname === ssePath) {
-      const transport = new SSEServerTransport(messagesPath, res)
+      const transport = new SSEServerTransport(scopedMessagesPath, res)
       const server = buildServer(bridge)
 
       const sessionId = transport.sessionId
       sessions.set(sessionId, { server, transport })
-      console.error(`[vade-canvas] SSE session open ${sessionId} (total=${sessions.size})`)
+      console.error(
+        `[vade-canvas] SSE session open ${sessionId} on ${machineId || 'local'} (total=${sessions.size})`,
+      )
 
       const cleanup = () => {
         if (!sessions.has(sessionId)) return
@@ -85,7 +93,19 @@ async function runSse() {
       return
     }
 
-    if (req.method === 'POST' && url.pathname === messagesPath) {
+    if (req.method === 'POST' && url.pathname.startsWith(messagesPath)) {
+      // Path shape: `/messages` or `/messages/<machineId>`. If the
+      // client's target machine isn't us, hand off to Fly's proxy —
+      // it will replay the request (body included) to that instance.
+      const tail = url.pathname.slice(messagesPath.length)
+      const targetMachineId = tail.startsWith('/') ? tail.slice(1) : ''
+      if (targetMachineId && targetMachineId !== machineId) {
+        res.setHeader('fly-replay', `instance=${targetMachineId}`)
+        res.writeHead(204)
+        res.end()
+        return
+      }
+
       const sid = url.searchParams.get('sessionId')
       const session = sid ? sessions.get(sid) : undefined
       if (!session) {
