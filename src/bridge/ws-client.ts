@@ -72,8 +72,10 @@ export class VadeBridge {
       ? [CLIENT_SUBPROTOCOL, `${TOKEN_SUBPROTOCOL_PREFIX}${this.token}`]
       : undefined
     const ws = protocols ? new WebSocket(WS_URL, protocols) : new WebSocket(WS_URL)
+    let didOpen = false
 
     ws.onopen = () => {
+      didOpen = true
       this.ws = ws
       this.reconnectDelay = 1000
       this.setStatus('connected')
@@ -93,9 +95,9 @@ export class VadeBridge {
 
     ws.onclose = (event) => {
       this.ws = null
-      // 1008 (policy violation) is what browsers surface for a 401 on
-      // the upgrade response — treat as unauthorized and stop retrying.
-      if (event.code === 1008 || event.code === 4401) {
+      const failedHandshakeWithToken =
+        !!this.token && !didOpen && event.code === 1006 && navigator.onLine
+      if (event.code === 1008 || event.code === 4401 || failedHandshakeWithToken) {
         this.setStatus('unauthorized')
         return
       }
