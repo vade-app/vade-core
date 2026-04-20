@@ -1,18 +1,42 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "vade-core",
-  "compatibility_date": "2026-04-19",
-  "routes": [
-    { "pattern": "vade-app.dev", "custom_domain": true },
-    { "pattern": "www.vade-app.dev", "custom_domain": true }
-  ],
-  "observability": {
-    "enabled": true
-  },
-  "assets": {
-    "not_found_handling": "single-page-application"
-  },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "vade-core",
+	"main": "worker/index.ts",
+	"compatibility_date": "2026-04-19",
+	"routes": [
+		{
+			"pattern": "vade-app.dev",
+			"custom_domain": true
+		},
+		{
+			"pattern": "www.vade-app.dev",
+			"custom_domain": true
+		}
+	],
+	"observability": {
+		"enabled": true
+	},
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application",
+		"run_worker_first": true
+	},
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"r2_buckets": [
+		{
+			"binding": "LIBRARY_R2",
+			"bucket_name": "vade-library"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "vade_library",
+			"database_name": "vade-library",
+			"database_id": "9a3ff295-d190-40a5-be3b-1f2af0111d1d",
+			"remote": true
+		}
+	]
 }

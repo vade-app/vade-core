@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CanvasBridge } from '../ws-server.js'
 import { makeId } from '../protocol.js'
-import * as lib from '../library.js'
+import { getStore } from '../library.js'
 
 export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
   server.registerTool('saveCanvas', {
@@ -14,7 +14,8 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
     },
   }, async ({ name, tags, description }) => {
     const snapshot = await bridge.send({ type: 'getSnapshot', id: makeId() })
-    const meta = lib.saveCanvas(name, snapshot, tags ?? [], description ?? '')
+    const store = await getStore()
+    const meta = await store.saveCanvas(name, snapshot, tags ?? [], description ?? '')
     return { content: [{ type: 'text' as const, text: `Saved canvas "${name}"\n${JSON.stringify(meta, null, 2)}` }] }
   })
 
@@ -24,7 +25,8 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
       name: z.string().describe('Name of the canvas to load'),
     },
   }, async ({ name }) => {
-    const result = lib.loadCanvas(name)
+    const store = await getStore()
+    const result = await store.loadCanvas(name)
     if (!result) {
       return { content: [{ type: 'text' as const, text: `Canvas "${name}" not found in library.` }] }
     }
@@ -35,7 +37,8 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
   server.registerTool('listCanvases', {
     description: 'List all saved canvases in the library.',
   }, async () => {
-    const canvases = lib.listCanvases()
+    const store = await getStore()
+    const canvases = await store.listCanvases()
     if (canvases.length === 0) {
       return { content: [{ type: 'text' as const, text: 'No canvases saved yet.' }] }
     }
@@ -48,7 +51,8 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
       query: z.string().describe('Search query'),
     },
   }, async ({ query }) => {
-    const results = lib.searchLibrary(query)
+    const store = await getStore()
+    const results = await store.searchLibrary(query)
     return { content: [{ type: 'text' as const, text: JSON.stringify(results, null, 2) }] }
   })
 
@@ -80,7 +84,8 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
       id: undefined,
     }))
 
-    const meta = lib.saveEntity(name, normalized, tags ?? [], description ?? '')
+    const store = await getStore()
+    const meta = await store.saveEntity(name, normalized, tags ?? [], description ?? '')
     return { content: [{ type: 'text' as const, text: `Saved entity "${name}" (${selected.length} shapes)\n${JSON.stringify(meta, null, 2)}` }] }
   })
 
@@ -92,7 +97,8 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
       y: z.number().optional().describe('Y position to place entity (default: 0)'),
     },
   }, async ({ name, x, y }) => {
-    const result = lib.loadEntity(name)
+    const store = await getStore()
+    const result = await store.loadEntity(name)
     if (!result) {
       return { content: [{ type: 'text' as const, text: `Entity "${name}" not found.` }] }
     }
