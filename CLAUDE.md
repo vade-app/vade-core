@@ -94,6 +94,25 @@ other `vade-app` repositories from sessions started here.
 See [vade-governance/authority.md](https://github.com/vade-app/vade-governance/blob/main/authority.md)
 for the authoritative list.
 
+## Hitting an OAuth/scope wall on `git push` from a remote session
+
+Claude Code on the web sessions push through a scoped-down git
+proxy. The two recurring blockers are:
+
+- `git push` rejected with `refusing to allow an OAuth App to
+  create or update workflow ... without 'workflow' scope` (any
+  `.github/workflows/*` change).
+- GitHub MCP `create_or_update_file` / `push_files` returning
+  `404 Not Found` despite reads working.
+
+Don't burn cycles retrying or asking for token swaps. Commit the
+work locally on the branch, then suggest the user `/teleport` the
+session to their local Claude Code and finish the push from there
+— typically with `git push git@github.com:OWNER/REPO.git BRANCH`.
+SSH key auth bypasses the OAuth-app scope restriction entirely.
+The unblock for vade-core PR #49 (workflow files) on 2026-04-20
+is the canonical example.
+
 ## Current state
 
 **Pre-alpha MVP scaffold is in `main`.** The canvas is live at

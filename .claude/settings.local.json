@@ -51,7 +51,12 @@
       "Bash(gh api *)",
       "Bash(flyctl scale *)",
       "mcp__claude_ai_tldraw__exec",
-      "mcp__vade-canvas__loadCanvas"
+      "mcp__vade-canvas__loadCanvas",
+      "Bash(mkdir -p /root/.claude/plans)",
+      "Read(//root/.claude/plans/**)",
+      "Bash(gh auth *)",
+      "Bash(ssh -T git@github.com)",
+      "mcp__claude_ai_Customgithub__pull_request_read"
     ]
   },
   "enableAllProjectMcpServers": true,
