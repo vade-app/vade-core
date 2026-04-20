@@ -70,6 +70,14 @@ export default function App() {
         shapeUtils={customShapeUtils}
         onMount={(editor) => {
           bridgeRef.current.connect(editor)
+          if (editor.getCurrentPageShapes().length === 0) {
+            editor.createShape({
+              type: 'geo',
+              x: -100,
+              y: -100,
+              props: { geo: 'triangle', w: 200, h: 200 },
+            })
+          }
         }}
       />
       <ConnectionIndicator />
