@@ -13,7 +13,8 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run mcp\"",
     "deploy": "npm run build && wrangler deploy",
     "migrate-library": "tsx scripts/migrate-library.ts",
-    "typecheck:worker": "tsc -p tsconfig.worker.json"
+    "typecheck:worker": "tsc -p tsconfig.worker.json",
+    "typecheck:mcp": "tsc -p tsconfig.mcp.build.json"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

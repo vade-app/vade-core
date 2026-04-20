@@ -1,5 +1,8 @@
 # vade-core
 
+[![mcp-deploy](https://github.com/vade-app/vade-core/actions/workflows/mcp-deploy.yml/badge.svg)](https://github.com/vade-app/vade-core/actions/workflows/mcp-deploy.yml)
+[![pr-checks](https://github.com/vade-app/vade-core/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/vade-app/vade-core/actions/workflows/pr-checks.yml)
+
 **VADE kernel and canvas IDE.** The primary application repo for
 [VADE](https://github.com/vade-app) — a Visual Agent-based
 Development Environment. Canvas-based IDE/OS hybrid where AI agents
@@ -67,8 +70,20 @@ Worker's library routes instead of a local filesystem. Redeploy with
 
 The two services share a bearer: the Worker holds it as
 `LIBRARY_BEARER` (`wrangler secret put`), the Fly container holds it
-as `VADE_LIBRARY_BEARER` (`flyctl secrets set`). CI/CD via GitHub
-Actions is tracked under issue #10.
+as `VADE_LIBRARY_BEARER` (`flyctl secrets set`).
+
+CI/CD is wired via GitHub Actions (see
+[issue #10](https://github.com/vade-app/vade-core/issues/10)):
+
+- `pr-checks.yml` typechecks the canvas, Worker, and MCP server on
+  every pull request.
+- `mcp-deploy.yml` runs `flyctl deploy` when `mcp/**`, `Dockerfile`,
+  or `fly.toml` change on `main`, then smoke-tests
+  `https://mcp.vade-app.dev/healthz`.
+- Cloudflare's Git integration remains authoritative for the canvas
+  Worker deploy on push to `main`. A short commit SHA is baked into
+  the build and surfaced in the canvas `ConnectionIndicator` so
+  deploys are visually verifiable from iPad.
 
 ## Governance
 

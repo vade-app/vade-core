@@ -18,6 +18,8 @@ function readStoredToken(): string | null {
   }
 }
 
+const COMMIT_SHA = import.meta.env.VITE_COMMIT_SHA
+
 function ConnectionIndicator({ bridge, onClearToken }: { bridge: VadeBridge; onClearToken: () => void }) {
   const [status, setStatus] = useState<BridgeStatus>('disconnected')
 
@@ -75,6 +77,9 @@ function ConnectionIndicator({ bridge, onClearToken }: { bridge: VadeBridge; onC
         }}
       />
       {labels[status]}
+      {COMMIT_SHA && COMMIT_SHA !== 'dev' && (
+        <span style={{ color: '#6c7086' }}>· {COMMIT_SHA}</span>
+      )}
     </div>
   )
 }
