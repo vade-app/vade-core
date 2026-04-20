@@ -30,7 +30,7 @@ saved work. Remaining milestone-1 work is tracked under issues
 ## Tech stack
 
 - React 18 + TypeScript (strict) + Vite
-- tldraw ^4.5.x (infinite canvas SDK)
+- tldraw 3.15.6 (infinite canvas SDK; temporarily pinned — see #32)
 - @modelcontextprotocol/server (MCP bridge)
 - WebSocket (real-time MCP-to-canvas communication)
 
