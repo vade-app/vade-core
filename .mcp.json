@@ -2,7 +2,10 @@
   "mcpServers": {
     "vade-canvas": {
       "type": "sse",
-      "url": "https://mcp.vade-app.dev/sse"
+      "url": "https://mcp.vade-app.dev/sse",
+      "headers": {
+        "Authorization": "Bearer ${VADE_AUTH_TOKEN}"
+      }
     }
   }
 }
