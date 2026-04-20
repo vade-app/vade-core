@@ -45,6 +45,38 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
     return { content: [{ type: 'text' as const, text: JSON.stringify(canvases, null, 2) }] }
   })
 
+  server.registerTool('deleteCanvas', {
+    description: 'Delete a saved canvas from the library by name.',
+    inputSchema: {
+      name: z.string().describe('Name of the canvas to delete'),
+    },
+  }, async ({ name }) => {
+    const store = await getStore()
+    const ok = await store.deleteCanvas(name)
+    return {
+      content: [{
+        type: 'text' as const,
+        text: ok ? `Deleted canvas "${name}".` : `Canvas "${name}" not found.`,
+      }],
+    }
+  })
+
+  server.registerTool('deleteEntity', {
+    description: 'Delete a saved entity from the library by name.',
+    inputSchema: {
+      name: z.string().describe('Name of the entity to delete'),
+    },
+  }, async ({ name }) => {
+    const store = await getStore()
+    const ok = await store.deleteEntity(name)
+    return {
+      content: [{
+        type: 'text' as const,
+        text: ok ? `Deleted entity "${name}".` : `Entity "${name}" not found.`,
+      }],
+    }
+  })
+
   server.registerTool('searchLibrary', {
     description: 'Search saved canvases and entities by name, tags, or description.',
     inputSchema: {

@@ -85,6 +85,7 @@ export async function handleLibrary(req: Request, env: Env, url: URL): Promise<R
       }
       if (req.method === 'GET') return getCanvas(env, slug)
       if (req.method === 'PUT') return putCanvas(env, slug, await req.json())
+      if (req.method === 'DELETE') return deleteCanvas(env, slug)
       return text('Method not allowed', 405)
     }
 
@@ -95,6 +96,7 @@ export async function handleLibrary(req: Request, env: Env, url: URL): Promise<R
       }
       if (req.method === 'GET') return getEntity(env, slug)
       if (req.method === 'PUT') return putEntity(env, slug, await req.json())
+      if (req.method === 'DELETE') return deleteEntity(env, slug)
       return text('Method not allowed', 405)
     }
 
@@ -159,6 +161,18 @@ async function putCanvas(env: Env, slug: string, body: unknown): Promise<Respons
   return json({ name: b.name, tags, description, created, modified: now } satisfies CanvasMeta)
 }
 
+async function deleteCanvas(env: Env, slug: string): Promise<Response> {
+  const existing = await env.vade_library
+    .prepare('SELECT slug FROM canvases WHERE slug = ?')
+    .bind(slug)
+    .first<{ slug: string }>()
+  if (!existing) return text('Not found', 404)
+
+  await env.LIBRARY_R2.delete(canvasKey(slug))
+  await env.vade_library.prepare('DELETE FROM canvases WHERE slug = ?').bind(slug).run()
+  return new Response(null, { status: 204 })
+}
+
 async function listEntities(env: Env): Promise<Response> {
   const { results } = await env.vade_library
     .prepare('SELECT slug, name, tags, description FROM entities ORDER BY name')
@@ -199,6 +213,18 @@ async function putEntity(env: Env, slug: string, body: unknown): Promise<Respons
     .run()
 
   return json({ name: b.name, tags, description } satisfies EntityMeta)
+}
+
+async function deleteEntity(env: Env, slug: string): Promise<Response> {
+  const existing = await env.vade_library
+    .prepare('SELECT slug FROM entities WHERE slug = ?')
+    .bind(slug)
+    .first<{ slug: string }>()
+  if (!existing) return text('Not found', 404)
+
+  await env.LIBRARY_R2.delete(entityKey(slug))
+  await env.vade_library.prepare('DELETE FROM entities WHERE slug = ?').bind(slug).run()
+  return new Response(null, { status: 204 })
 }
 
 async function search(env: Env, query: string): Promise<Response> {

@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'fs'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
 import type { CanvasMeta, EntityMeta, LibraryStore } from '../library.js'
@@ -76,6 +76,13 @@ export class FsLibraryStore implements LibraryStore {
     }
   }
 
+  async deleteCanvas(name: string): Promise<boolean> {
+    const dir = join(this.canvasesDir, slugify(name))
+    if (!existsSync(dir)) return false
+    rmSync(dir, { recursive: true, force: true })
+    return true
+  }
+
   async listEntities(): Promise<EntityMeta[]> {
     this.ensureDirs()
     const entries = readdirSync(this.entitiesDir, { withFileTypes: true })
@@ -114,6 +121,13 @@ export class FsLibraryStore implements LibraryStore {
       shapes: JSON.parse(readFileSync(shapesPath, 'utf-8')) as unknown[],
       meta: JSON.parse(readFileSync(metaPath, 'utf-8')) as EntityMeta,
     }
+  }
+
+  async deleteEntity(name: string): Promise<boolean> {
+    const dir = join(this.entitiesDir, slugify(name))
+    if (!existsSync(dir)) return false
+    rmSync(dir, { recursive: true, force: true })
+    return true
   }
 
   async searchLibrary(query: string): Promise<{ canvases: CanvasMeta[]; entities: EntityMeta[] }> {
