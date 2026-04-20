@@ -4,6 +4,7 @@
 .devcontainer
 node_modules
 dist
+dist-mcp
 .vade
 .env
 .env.*
