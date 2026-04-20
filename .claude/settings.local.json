@@ -39,7 +39,10 @@
       "mcp__vade-canvas__createBatch",
       "Bash(flyctl releases *)",
       "Bash(npm run *)",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "Bash(flyctl secrets *)",
+      "Bash(npx wrangler *)",
+      "mcp__vade-canvas__saveCanvas"
     ]
   },
   "enableAllProjectMcpServers": true,

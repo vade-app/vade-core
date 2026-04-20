@@ -50,6 +50,13 @@ export class CloudLibraryStore implements LibraryStore {
     return this.json<CanvasMeta[]>('GET', `/canvases`)
   }
 
+  async deleteCanvas(name: string): Promise<boolean> {
+    const res = await this.req('DELETE', `/canvases/${slugify(name)}`)
+    if (res.status === 404) return false
+    if (!res.ok) throw new Error(`Cloud library DELETE canvas failed: ${res.status}`)
+    return true
+  }
+
   async saveEntity(name: string, shapes: unknown[], tags: string[], description: string): Promise<EntityMeta> {
     return this.json<EntityMeta>('PUT', `/entities/${slugify(name)}`, { name, shapes, tags, description })
   }
@@ -63,6 +70,13 @@ export class CloudLibraryStore implements LibraryStore {
 
   async listEntities(): Promise<EntityMeta[]> {
     return this.json<EntityMeta[]>('GET', `/entities`)
+  }
+
+  async deleteEntity(name: string): Promise<boolean> {
+    const res = await this.req('DELETE', `/entities/${slugify(name)}`)
+    if (res.status === 404) return false
+    if (!res.ok) throw new Error(`Cloud library DELETE entity failed: ${res.status}`)
+    return true
   }
 
   async searchLibrary(query: string): Promise<{ canvases: CanvasMeta[]; entities: EntityMeta[] }> {

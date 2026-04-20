@@ -16,9 +16,11 @@ export interface LibraryStore {
   saveCanvas(name: string, snapshot: unknown, tags: string[], description: string): Promise<CanvasMeta>
   loadCanvas(name: string): Promise<{ snapshot: unknown; meta: CanvasMeta } | null>
   listCanvases(): Promise<CanvasMeta[]>
+  deleteCanvas(name: string): Promise<boolean>
   saveEntity(name: string, shapes: unknown[], tags: string[], description: string): Promise<EntityMeta>
   loadEntity(name: string): Promise<{ shapes: unknown[]; meta: EntityMeta } | null>
   listEntities(): Promise<EntityMeta[]>
+  deleteEntity(name: string): Promise<boolean>
   searchLibrary(query: string): Promise<{ canvases: CanvasMeta[]; entities: EntityMeta[] }>
 }
 
