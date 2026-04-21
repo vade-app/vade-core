@@ -27,8 +27,8 @@ almost always a bad or expired token — see
 OAuth 2.0 authentication; the hosted `vade-mcp` server uses bearer
 tokens and does not implement an OAuth flow.
 
-Tracked under issue #7 (remote MCP bridge). For now, use Claude
-Desktop or Claude Code to access the hosted MCP server.
+Tracked under issue #57 (MCP OAuth on vade-mcp). For now, use
+Claude Desktop or Claude Code to access the hosted MCP server.
 
 ## Claude Desktop
 
