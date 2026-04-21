@@ -23,19 +23,12 @@ almost always a bad or expired token — see
 
 ## Claude.ai (web)
 
-Remote MCP connectors are available on Claude.ai for Pro, Team, and
-Enterprise plans.
+**Not currently supported.** Claude.ai's custom connectors require
+OAuth 2.0 authentication; the hosted `vade-mcp` server uses bearer
+tokens and does not implement an OAuth flow.
 
-1. Go to **Settings → Connectors → Add custom connector**.
-2. Fill in:
-   - **Name**: `vade-canvas`
-   - **Remote MCP server URL**: `https://mcp.vade-app.dev/sse`
-   - **Authentication**: Bearer token → paste operator token
-3. Save. The connector appears in the tool picker on new
-   conversations; toggle it on per-conversation.
-
-The same token value as the iPad PWA and Claude Code — one operator
-token, all surfaces.
+Tracked under issue #7 (remote MCP bridge). For now, use Claude
+Desktop or Claude Code to access the hosted MCP server.
 
 ## Claude Desktop
 
