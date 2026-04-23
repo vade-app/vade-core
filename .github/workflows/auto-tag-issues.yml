@@ -1,0 +1,138 @@
+name: Auto-tag new issues
+
+# Canonical taxonomy: https://github.com/vade-app/vade-coo-memory/blob/main/coo/label_taxonomy.md
+# When taxonomy v2 lands, batch-update all 5 repos' workflows together.
+#
+# Mirrors the pilot on vade-coo-memory (see MEMO 2026-04-23-04 and the
+# five-PR debug chain on vade-coo-memory: #70, #73, #74, #75, #76).
+# Do not regress the invariants without reviewing that history first:
+#   - permissions.id-token:write is required (OIDC; PR #73)
+#   - fetch the issue via `gh` tool call, not YAML-inlined event
+#     fields (PR #74)
+#   - `--permission-mode bypassPermissions` is required in headless CI
+#     (PR #75)
+#   - prompt must mandate exact `gh issue edit` + `gh issue view
+#     --json labels` verification; the model will otherwise declare
+#     success in text without calling the tool (PR #76)
+#
+# Prerequisites:
+#   - secrets.ANTHROPIC_API_KEY set (org-level preferred, repo-level OK)
+#   - Claude GitHub App installed on this repo
+#     (https://github.com/apps/claude)
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to re-tag (manual dry-run or retry)"
+        required: true
+        type: number
+
+permissions:
+  issues: write
+  contents: read
+  id-token: write  # anthropics/claude-code-action@v1 mints its GitHub token via OIDC
+
+concurrency:
+  group: auto-tag-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    # Skip bot-authored issues so the router can't retrigger itself
+    # once agents start filing issues.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.issue.user.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Classify and label
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # bypassPermissions because the subprocess runs headless in CI —
+          # no interactive prompt available, so default-deny blocks the
+          # label-write path. Blast radius is bounded by the workflow's
+          # `permissions:` block (issues:write + contents:read) and the
+          # prompt's explicit "labels only" constraint.
+          claude_args: --model claude-haiku-4-5-20251001 --permission-mode bypassPermissions
+          # Surface full SDK output in the Actions log so future failures
+          # (permission denials, tool errors) are visible without a rerun.
+          show_full_output: true
+          prompt: |
+            You are a small, deterministic labeling routine for the
+            `vade-app/vade-core` repo. You apply labels to one
+            specific issue and do nothing else.
+
+            Target issue number: ${{ github.event.issue.number || inputs.issue_number }}
+
+            Procedure:
+              1. Fetch the target issue via `Bash`:
+
+                     gh issue view <NUMBER> --repo vade-app/vade-core --json title,body,author
+
+                 (Do not request `authorAssociation` — it is not a valid
+                 `gh` JSON field; the author's `login` is sufficient.)
+              2. Decide on labels. Dimensions (canonical taxonomy at
+                 https://github.com/vade-app/vade-coo-memory/blob/main/coo/label_taxonomy.md):
+                   - `type:*`       exactly one of: type:bug, type:feat,
+                                     type:chore, type:docs, type:refactor,
+                                     type:test, type:research, type:epic
+                   - `area:*`       one or two, from this repo's
+                                     vocabulary: area:canvas, area:mcp,
+                                     area:storage, area:auth, area:ui,
+                                     area:cloud (plus universal area:docs /
+                                     area:ci / area:deploy)
+                   - `readiness:*`  exactly one **only if confident**; omit
+                                     when the description is too thin to
+                                     judge (implicit "untriaged"); apply
+                                     `readiness:ready` only when the issue
+                                     is well-scoped, the approach is clear,
+                                     and there are no blockers. Options:
+                                     readiness:ready, readiness:needs-design,
+                                     readiness:needs-research,
+                                     readiness:needs-breakdown.
+                   - `prio:*`       zero or one (prio:P0..P3), only if the
+                                     issue explicitly signals urgency
+                   - qualifiers     zero or more: `needs:bdfl-approval`,
+                                     `blocked:bdfl-go-ahead`, `blocked:upstream`,
+                                     `emancipatory`, `external-code`
+                 Prefer omitting a dimension over guessing.
+              3. **Apply the labels — this step is mandatory and is not
+                 optional text.** Execute exactly this `Bash` command
+                 (one `--add-label` flag per label):
+
+                     gh issue edit <NUMBER> --repo vade-app/vade-core \
+                       --add-label "<label1>" --add-label "<label2>" ...
+
+                 If `gh` reports a label does not exist in the repo, first
+                 create it:
+
+                     gh label create "<label>" --repo vade-app/vade-core
+
+                 then retry the `gh issue edit`. Keep going until the
+                 `gh issue edit` command exits successfully.
+              4. **Verify** by running:
+
+                     gh issue view <NUMBER> --repo vade-app/vade-core --json labels
+
+                 and confirming the `labels[*].name` array contains every
+                 label you intended to apply. If any are missing, retry
+                 step 3 for the missing ones.
+
+            Do not stop until step 4's verification shows the labels on
+            the issue. Merely declaring "applied" in text is not enough —
+            the terminal state must be a verified `gh issue view` output
+            with the labels present.
+
+            Side-effect budget: labels only. Do not edit the title or
+            body, do not post a comment, do not assign, do not close.
+
+            If a label you want does not yet exist and is additive under
+            the taxonomy's maintenance rules, `gh label create` is allowed
+            (step 3 above handles this). Do not invent new *dimensions* —
+            only new values under existing prefixes (`type:`, `area:`,
+            `readiness:`, `prio:`, `needs:`, `blocked:`).
+
+            Be brief in your final message. One line naming the labels
+            that are now on the issue.
