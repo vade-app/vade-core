@@ -75,6 +75,17 @@ function CanvasSwitcherInner({ editor }: { editor: Editor }) {
     writeActive(active)
   }, [active])
 
+  // The modal portals to document.body, so any click inside it blurs the
+  // tldraw container — and keyboard shortcuts + wheel/pan are gated on
+  // editor.isFocused. loadStoreSnapshot also restores the saved instance
+  // record, which carries isFocused, so a canvas saved while the chip was
+  // open deserializes into a blurred editor. Re-focus on every close so H,
+  // V, touchpad scroll, etc. keep working after save/switch.
+  const closeModal = () => {
+    setOpen(false)
+    editor.focus()
+  }
+
   // Dirty tracking: flip on any user-initiated document-scope change.
   useEffect(() => {
     const off = editor.store.listen(
@@ -161,7 +172,7 @@ function CanvasSwitcherInner({ editor }: { editor: Editor }) {
             editor={editor}
             active={active}
             dirty={dirty}
-            onClose={() => setOpen(false)}
+            onClose={closeModal}
             onActivate={(next, newDirty) => {
               setActive(next)
               setDirty(newDirty)
