@@ -5,6 +5,10 @@ export interface Env {
   LIBRARY_R2: R2Bucket
   vade_library: D1Database
   LIBRARY_BEARER: string
+  // JSON of shape {"operator":[...],"agents":[...]} — same as Fly's VADE_AUTH_TOKENS.
+  // When set, tokens in either array are accepted on /library/* in addition to LIBRARY_BEARER.
+  // See docs/auth.md and wrangler.jsonc for provisioning.
+  OPERATOR_TOKENS?: string
 }
 
 export default {

@@ -28,6 +28,10 @@ saved work. Remaining milestone-1 work is tracked under issues
 - **Cloud library** (`worker/library.ts` + `migrations/`) — bearer-
   gated `/library/*` route on the Worker, snapshots to R2, metadata
   to D1; selected from the MCP side via `VADE_LIBRARY_DRIVER=fs|cloud`
+- **Canvas switcher UI** (`src/components/CanvasSwitcher.tsx`) —
+  operator-facing save / load / rename / duplicate / delete over the
+  same cloud library; writes from the SPA and MCP tools round-trip
+  through the same R2 + D1 store
 - **PWA support** — installable on iPad via Add to Home Screen
 
 ## Tech stack

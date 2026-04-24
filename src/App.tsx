@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Tldraw } from 'tldraw'
+import { Tldraw, type TLUiComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { customShapeUtils } from './shapes'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
+import { CanvasSwitcher } from './components/CanvasSwitcher'
+
+// Inject CanvasSwitcher into tldraw's top-right SharePanel slot so the
+// chip renders inside tldraw's chrome and can't collide with Main Menu
+// popovers or the style panel.
+const tldrawComponents: TLUiComponents = {
+  SharePanel: CanvasSwitcher,
+}
 
 const TOKEN_STORAGE_KEY = 'vade-auth-token'
 
@@ -196,6 +204,7 @@ export default function App() {
       <Tldraw
         persistenceKey="vade-main"
         shapeUtils={customShapeUtils}
+        components={tldrawComponents}
         onMount={(editor) => {
           bridgeRef.current.connect(editor)
         }}

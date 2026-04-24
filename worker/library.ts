@@ -61,14 +61,46 @@ function canvasKey(slug: string): string {
   return `canvases/${slug}/snapshot.tldr`
 }
 
+// Accept LIBRARY_BEARER (service-to-service secret shared with Fly) OR any
+// token listed in OPERATOR_TOKENS.{operator,agents}[] (same JSON shape as
+// Fly's VADE_AUTH_TOKENS). The second path lets the SPA reach /library/*
+// directly with the operator's localStorage bearer. This deliberately
+// widens the leaked-client-token blast radius from "MCP surface only" to
+// "MCP + library"; trade-off documented in docs/auth.md.
+function isAuthorized(req: Request, env: Env): boolean {
+  const auth = req.headers.get('Authorization') ?? ''
+  if (!auth.startsWith('Bearer ')) return false
+  const token = auth.slice(7)
+  if (!token) return false
+
+  if (env.LIBRARY_BEARER && token === env.LIBRARY_BEARER) return true
+
+  if (env.OPERATOR_TOKENS) {
+    try {
+      const parsed = JSON.parse(env.OPERATOR_TOKENS) as {
+        operator?: unknown
+        agents?: unknown
+      }
+      const operator = Array.isArray(parsed.operator) ? parsed.operator : []
+      const agents = Array.isArray(parsed.agents) ? parsed.agents : []
+      for (const t of [...operator, ...agents]) {
+        if (typeof t === 'string' && t === token) return true
+      }
+    } catch (err) {
+      // Malformed JSON: log once per request and treat as absent rather than 500.
+      console.warn('OPERATOR_TOKENS is not valid JSON; ignoring', err)
+    }
+  }
+
+  return false
+}
+
 function entityKey(slug: string): string {
   return `entities/${slug}/shapes.json`
 }
 
 export async function handleLibrary(req: Request, env: Env, url: URL): Promise<Response> {
-  const auth = req.headers.get('Authorization') ?? ''
-  const expected = `Bearer ${env.LIBRARY_BEARER}`
-  if (!env.LIBRARY_BEARER || auth !== expected) {
+  if (!isAuthorized(req, env)) {
     return text('Unauthorized', 401)
   }
 
