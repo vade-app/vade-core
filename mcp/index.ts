@@ -5,11 +5,16 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
 import { CanvasBridge, DEFAULT_WS_PORT } from './ws-server.js'
 import {
   loadAuthConfig,
-  verifyBearer,
   verifySubprotocols,
   type AuthConfig,
   type Principal,
 } from './auth.js'
+import {
+  handleOauthRequest,
+  OAuthStore,
+  verifyBearerOrOauth,
+  type OAuthContext,
+} from './oauth.js'
 import { registerShapeTools } from './tools/shapes.js'
 import { registerCanvasTools } from './tools/canvas.js'
 import { registerRuntimeTools } from './tools/runtime.js'
@@ -34,12 +39,21 @@ function requireBearer(
   req: IncomingMessage,
   res: ServerResponse,
   cfg: AuthConfig,
+  oauthStore: OAuthStore | null,
+  oauthEnabled: boolean,
+  resourceMetadataUrl: string,
 ): Principal | null {
-  const principal = verifyBearer(req.headers['authorization'], cfg)
+  const header = req.headers['authorization']
+  const principal = oauthStore
+    ? verifyBearerOrOauth(header, cfg, oauthStore)
+    : verifyBearerOrOauth(header, cfg, new OAuthStore())
   if (!principal) {
+    const wwwAuth = oauthEnabled
+      ? `Bearer realm="vade-canvas", resource_metadata="${resourceMetadataUrl}"`
+      : 'Bearer realm="vade-canvas"'
     res.writeHead(401, {
       'Content-Type': 'text/plain',
-      'WWW-Authenticate': 'Bearer realm="vade-canvas"',
+      'WWW-Authenticate': wwwAuth,
     })
     res.end('Unauthorized')
     return null
@@ -57,6 +71,20 @@ async function runSse() {
   console.error(
     `[vade-canvas] auth loaded: ${auth.operator.length} operator, ${auth.agents.length} agent token(s)`,
   )
+
+  const oauthEnabled = !!process.env['VADE_OAUTH_ENABLED']
+  const oauthIssuer = (process.env['VADE_OAUTH_ISSUER'] ?? 'https://mcp.vade-app.dev').replace(/\/$/, '')
+  const oauthStore = new OAuthStore()
+  if (oauthEnabled) {
+    // Cascade-revoke any tokens that descend from operator entries no longer
+    // in the live config (single rotation regime — see docs/auth.md).
+    oauthStore.sweepOnAuthConfigChange(auth)
+    console.error(
+      `[vade-canvas] OAuth surface enabled; issuer=${oauthIssuer}, resource=${oauthIssuer}`,
+    )
+  }
+  const oauthContext: OAuthContext = { issuer: oauthIssuer, resource: oauthIssuer }
+  const resourceMetadataUrl = `${oauthIssuer}/.well-known/oauth-protected-resource`
 
   // On Fly.io, sessions live in per-machine memory. Advertise a
   // machine-scoped endpoint so the client's POST can be replayed to
@@ -105,8 +133,13 @@ async function runSse() {
       return
     }
 
+    if (oauthEnabled) {
+      const result = await handleOauthRequest(req, res, url, auth, oauthStore, oauthContext)
+      if (result.handled) return
+    }
+
     if (req.method === 'GET' && url.pathname === ssePath) {
-      const principal = requireBearer(req, res, auth)
+      const principal = requireBearer(req, res, auth, oauthStore, oauthEnabled, resourceMetadataUrl)
       if (!principal) return
 
       const transport = new SSEServerTransport(scopedMessagesPath, res)
@@ -146,7 +179,7 @@ async function runSse() {
     }
 
     if (req.method === 'POST' && url.pathname.startsWith(messagesPath)) {
-      if (!requireBearer(req, res, auth)) return
+      if (!requireBearer(req, res, auth, oauthStore, oauthEnabled, resourceMetadataUrl)) return
 
       // Path shape: `/messages` or `/messages/<machineId>`. If the
       // client's target machine isn't us, hand off to Fly's proxy —

@@ -97,6 +97,42 @@ Add to your Claude Code MCP config:
 Restart Claude Code so it picks up the new config. A full remote-MCP
 setup walkthrough lives under issue #11.
 
+## Claude.ai (custom connector, OAuth)
+
+Claude.ai's "Add custom connector" UI requires OAuth 2.0 — it cannot
+paste a static bearer like Desktop or Code. The hosted server speaks
+the MCP authorization spec (revision 2025-06-18) when the
+`VADE_OAUTH_ENABLED` Fly secret is set.
+
+Setup, per Claude.ai user:
+
+1. Settings → Connectors → **Add custom connector**.
+2. Paste `https://mcp.vade-app.dev/sse` as the connector URL.
+3. Claude.ai discovers `/.well-known/oauth-authorization-server` and
+   registers itself dynamically (RFC 7591). No client_id to copy.
+4. Claude.ai opens the consent screen at `/oauth/authorize`. Paste
+   the same operator token used for Desktop / Code into the
+   "Operator token" field and click **Authorize**.
+5. The browser bounces back to Claude.ai with an authorization code,
+   exchanged at `/oauth/token` for access + refresh tokens.
+6. The connector shows "Connected" and `vade-canvas` tools surface in
+   conversations.
+
+Issued tokens descend from the operator entry that approved the consent.
+They live in-memory on the Fly machine; restart loses them and
+Claude.ai re-runs the consent flow on the next 401. One extra click.
+
+OAuth-issued access tokens are prefixed `vade_at_`, refresh tokens
+`vade_rt_` — they never collide with the hex-only bearer tokens above
+and never bypass the `mcp/auth.ts` principal lookup.
+
+Enable / disable, fully reversible:
+
+```sh
+flyctl secrets set VADE_OAUTH_ENABLED=1 --app vade-mcp     # enable
+flyctl secrets unset VADE_OAUTH_ENABLED --app vade-mcp     # disable
+```
+
 ## Rotation
 
 1. Mint a new token.
@@ -111,6 +147,13 @@ in the operator array during a cutover window:
 ```json
 { "operator": ["<new>", "<old>"], "agents": [] }
 ```
+
+OAuth-issued tokens are bound to the operator entry that approved
+their consent. When `VADE_AUTH_TOKENS` rotates, the startup sweep
+drops every issued OAuth token whose source operator entry is no
+longer present — Claude.ai's next request hits a 401 and re-runs
+the consent flow against the new operator token. One rotation
+regime, no parallel OAuth credential to manage.
 
 Then remove `<old>` after every client has moved over.
 
