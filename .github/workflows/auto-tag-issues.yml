@@ -1,0 +1,214 @@
+name: Auto-tag new issues
+
+# Canonical taxonomy: https://github.com/vade-app/vade-coo-memory/blob/main/coo/label_taxonomy.md
+# Canonical project:  https://github.com/orgs/vade-app/projects/1 (VADE)
+#   Project node ID:  PVT_kwDOEGdN_84BUV2r
+#   State field ID:   PVTSSF_lADOEGdN_84BUV2rzhBesRM
+#   planned option:   a5c0cccb
+# When taxonomy v2 lands or the VADE project is rebuilt, batch-update
+# all 5 repos' workflows together.
+#
+# Mirrors the pilot on vade-coo-memory (see MEMO 2026-04-23-04 and the
+# five-PR debug chain on vade-coo-memory: #70, #73, #74, #75, #76).
+# Do not regress the invariants without reviewing that history first:
+#   - permissions.id-token:write is required (OIDC; PR #73)
+#   - fetch the issue via `gh` tool call, not YAML-inlined event
+#     fields (PR #74)
+#   - `--permission-mode bypassPermissions` is required in headless CI
+#     (PR #75)
+#   - prompt must mandate exact `gh issue edit` + `gh issue view`
+#     verification; the model will otherwise declare success in text
+#     without calling the tool (PR #76)
+#
+# Prerequisites:
+#   - secrets.ANTHROPIC_API_KEY set (org-level preferred, repo-level OK)
+#   - Claude GitHub App installed on this repo
+#     (https://github.com/apps/claude)
+# Optional (graceful skip if absent):
+#   - secrets.VADE_PROJECT_PAT — PAT with `project` scope for the
+#     vade-app org. Enables auto-add to the VADE project with
+#     State=planned. If missing, labeling still runs; the project
+#     step logs a warning and skips.
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to re-tag (manual dry-run or retry)"
+        required: true
+        type: number
+
+permissions:
+  issues: write
+  contents: read
+  id-token: write  # anthropics/claude-code-action@v1 mints its GitHub token via OIDC
+
+concurrency:
+  group: auto-tag-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    # Skip bot-authored issues so the router can't retrigger itself
+    # once agents start filing issues.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.issue.user.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Classify, label, and add to VADE project
+        uses: anthropics/claude-code-action@v1
+        env:
+          # Optional: PAT with `project` scope for the vade-app org.
+          # Propagated to the subprocess so the prompt's project
+          # GraphQL mutations can use it via `GH_TOKEN=…`. If unset,
+          # the project step in the prompt gracefully skips.
+          VADE_PROJECT_PAT: ${{ secrets.VADE_PROJECT_PAT }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # bypassPermissions because the subprocess runs headless in CI —
+          # no interactive prompt available, so default-deny blocks the
+          # label-write and project-mutation paths. Blast radius is
+          # bounded by the workflow's `permissions:` block (issues:write
+          # + contents:read) and the prompt's explicit "labels + one
+          # project item only" constraint.
+          claude_args: --model claude-haiku-4-5-20251001 --permission-mode bypassPermissions
+          # Surface full SDK output in the Actions log so future failures
+          # (permission denials, tool errors, GraphQL 4xx) are visible
+          # without a rerun.
+          show_full_output: true
+          prompt: |
+            You are a small, deterministic triage routine for the
+            `vade-app/vade-core` repo. You classify one specific
+            issue, apply labels, and add it to the VADE project with
+            State=planned. You do nothing else.
+
+            Target issue number: ${{ github.event.issue.number || inputs.issue_number }}
+
+            Procedure:
+
+            1. Fetch the target issue via `Bash`:
+
+                   gh issue view <NUMBER> --repo vade-app/vade-core --json title,body,author,id
+
+               The `id` field is the GraphQL node ID — keep it; step 5
+               needs it. Do NOT request `authorAssociation` (not a
+               valid `gh` JSON field).
+
+            2. Classify across all five dimensions. Canonical taxonomy:
+               https://github.com/vade-app/vade-coo-memory/blob/main/coo/label_taxonomy.md
+
+               - `type:*` — exactly one (mandatory):
+                   type:bug, type:feat, type:chore, type:docs,
+                   type:refactor, type:test, type:research, type:epic
+
+               - `area:*` — one or two (mandatory), from this repo's
+                 vocabulary: area:canvas, area:mcp, area:storage, area:auth, area:ui, area:cloud (plus the universal
+                 area:docs / area:ci / area:deploy available to every
+                 repo)
+
+               - `readiness:*` — exactly one (mandatory):
+                   readiness:ready — ONLY if the issue is well-scoped,
+                     the approach is clear, and there are no blockers.
+                     Strict bar. When in any doubt, do NOT pick ready.
+                   readiness:needs-design — the WHAT is clear but the
+                     HOW requires design work.
+                   readiness:needs-research — facts, requirements, or
+                     dependencies are unknown and must be investigated
+                     before coding.
+                   readiness:needs-breakdown — too large or under-
+                     specified to start on; must be decomposed into
+                     smaller actionable issues. DEFAULT FALLBACK for
+                     thin / vague / partially-written issues.
+
+               - `prio:*` — exactly one (mandatory):
+                   prio:P0 — explicit urgency, production-critical, or
+                     blocker for multiple agents/people.
+                   prio:P1 — important soon; unblocking near-term work.
+                   prio:P2 — DEFAULT for normal work.
+                   prio:P3 — nice-to-have, backlog, or "someday"
+                     phrasing.
+
+               - qualifiers — apply each that matches (zero or more):
+                   needs:bdfl-approval — decision requires the BDFL
+                     (Ven) before implementation.
+                   blocked:bdfl-go-ahead — explicitly awaiting BDFL
+                     sign-off right now.
+                   blocked:upstream — waiting on upstream work in
+                     another repo or external dependency.
+                   emancipatory — issue concerns agent autonomy, self-
+                     infrastructure, or agent society design.
+                   external-code — touches code outside this repo's
+                     canonical ownership (vendored or cross-repo).
+
+               Expect 3–5 labels total on a typical issue (one each
+               from type, readiness, prio; one or two area; zero or
+               more qualifiers). If you find yourself applying fewer
+               than 3, re-read the issue — you probably missed a
+               dimension.
+
+            3. **Apply all labels.** This step is mandatory. Execute
+               exactly this `Bash` command (one `--add-label` flag per
+               label, every label from step 2):
+
+                   gh issue edit <NUMBER> --repo vade-app/vade-core \
+                     --add-label "<label1>" --add-label "<label2>" ...
+
+               If `gh` reports a label does not exist in the repo,
+               first create it with `gh label create "<label>" --repo
+               vade-app/vade-core` and retry. Keep going until
+               `gh issue edit` exits 0.
+
+            4. **Verify labels** by running:
+
+                   gh issue view <NUMBER> --repo vade-app/vade-core --json labels
+
+               and confirming `labels[*].name` contains every label
+               you intended to apply. If any are missing, retry step
+               3 for those.
+
+            5. **Add the issue to the VADE project with State=planned.**
+               Run this exact Bash block, replacing `<ISSUE_ID>` with
+               the `id` you got in step 1:
+
+                   if [ -z "$VADE_PROJECT_PAT" ]; then
+                     echo "VADE_PROJECT_PAT not set — skipping project assignment"
+                   else
+                     ITEM_ID=$(GH_TOKEN="$VADE_PROJECT_PAT" gh api graphql \
+                       -f query='mutation { addProjectV2ItemById(input: {projectId: "PVT_kwDOEGdN_84BUV2r", contentId: "<ISSUE_ID>"}) { item { id } } }' \
+                       -q '.data.addProjectV2ItemById.item.id')
+                     echo "Added to VADE as item $ITEM_ID"
+                     GH_TOKEN="$VADE_PROJECT_PAT" gh api graphql \
+                       -f query="mutation { updateProjectV2ItemFieldValue(input: { projectId: \"PVT_kwDOEGdN_84BUV2r\", itemId: \"$ITEM_ID\", fieldId: \"PVTSSF_lADOEGdN_84BUV2rzhBesRM\", value: { singleSelectOptionId: \"a5c0cccb\" } }) { projectV2Item { id } } }"
+                     echo "Set State=planned"
+                   fi
+
+               If the PAT is set and either mutation returns an error,
+               report the error in your final message but do not retry
+               destructively.
+
+            6. **Verify project membership** (only if step 5 ran the
+               mutation path, not the skip path):
+
+                   gh issue view <NUMBER> --repo vade-app/vade-core --json projectItems
+
+               Confirm a project item whose `title` is "VADE" appears
+               in the output. If step 5 took the skip path, note that
+               in your final message instead.
+
+            Do not stop until BOTH:
+              - Step 4's verification shows every intended label on the
+                issue, AND
+              - Step 6 confirms the VADE project item, OR step 5
+                logged the "VADE_PROJECT_PAT not set" warning.
+
+            Merely declaring "applied" in text is not enough — the
+            terminal state must be verified via `gh` output.
+
+            Side-effect budget: labels only, plus the one VADE project
+            item from step 5 (with its State set). Do not edit the
+            title or body, do not post a comment, do not assign, do
+            not close.
+
+            Final message: one line naming the labels now on the
+            issue, one line on project state (added / skipped / error).
