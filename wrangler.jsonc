@@ -39,4 +39,13 @@
 			"remote": true
 		}
 	]
+	// Secrets (set via `wrangler secret put <NAME>`; not in this file):
+	//   LIBRARY_BEARER   — service-to-service secret shared with the Fly
+	//                      MCP container (`VADE_LIBRARY_BEARER`).
+	//   OPERATOR_TOKENS  — JSON `{"operator":[...],"agents":[...]}`, same
+	//                      shape as Fly's VADE_AUTH_TOKENS. When set, the
+	//                      Worker accepts any token from either array on
+	//                      /library/*, which is what the SPA CanvasSwitcher
+	//                      uses to talk to the library without a live MCP
+	//                      session. See docs/auth.md.
 }

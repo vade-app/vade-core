@@ -8,11 +8,26 @@ service. Three client-facing surfaces are gated:
 | Canvas SPA bootstrap | `https://vade-app.dev` | Prompt on first load, persisted in `localStorage` |
 | MCP SSE transport | `https://mcp.vade-app.dev/sse` + `/messages/<machine-id>` | `Authorization: Bearer <token>` |
 | Canvas↔MCP WebSocket | `wss://mcp.vade-app.dev/canvas` | `Sec-WebSocket-Protocol: vade-canvas, vade-auth.<token>` |
+| Canvas SPA → library | `https://vade-app.dev/library/*` | `Authorization: Bearer <token>` (operator token from `OPERATOR_TOKENS`) |
 
-`LIBRARY_BEARER` (Worker) ↔ `VADE_LIBRARY_BEARER` (Fly) is a separate
-service-to-service secret. Client tokens do not grant direct access
-to the Worker's `/library/*` route — that keeps the blast radius of a
-leaked client token to the MCP surface only.
+Two Worker secrets gate `/library/*`:
+
+- `LIBRARY_BEARER` (Worker) ↔ `VADE_LIBRARY_BEARER` (Fly) is the
+  service-to-service secret used by the Fly MCP container.
+- `OPERATOR_TOKENS` (Worker, optional) is a JSON document of the same
+  shape as Fly's `VADE_AUTH_TOKENS`. When set, any token listed in
+  `operator[]` or `agents[]` is accepted on `/library/*` in addition
+  to `LIBRARY_BEARER`. This is what the SPA CanvasSwitcher uses to
+  talk to the library with the operator's `localStorage` bearer.
+
+Trade-off. Accepting `OPERATOR_TOKENS` on `/library/*` widens the
+blast radius of a leaked operator token from "MCP surface only" to
+"MCP + library". The operator already holds write access to the
+library indirectly (via MCP tools on an authenticated session), so the
+net new capability a stolen token grants is direct library read/write
+without a live MCP session. M1's single-operator threat model accepts
+this; if an operator token ever shouldn't reach `/library/*`, unset
+`OPERATOR_TOKENS` and the Worker falls back to `LIBRARY_BEARER`-only.
 
 ## Config shape
 
@@ -98,6 +113,21 @@ in the operator array during a cutover window:
 ```
 
 Then remove `<old>` after every client has moved over.
+
+### Rotating `OPERATOR_TOKENS` on the Worker
+
+The SPA → `/library/*` path reads the same operator token from
+`localStorage`, so the rotation checklist above covers it — the only
+extra step is publishing the new JSON to the Worker alongside Fly:
+
+```sh
+echo '{"operator":["<new>"],"agents":[]}' | wrangler secret put OPERATOR_TOKENS
+```
+
+Include both old and new tokens in `operator[]` during the cutover,
+same as Fly, and remove `<old>` after every client has migrated. If
+`OPERATOR_TOKENS` is unset, the Worker falls back to
+`LIBRARY_BEARER`-only — that was the pre-CanvasSwitcher posture.
 
 ## Threat model (M1)
 
