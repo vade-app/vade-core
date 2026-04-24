@@ -56,13 +56,7 @@ function fmtModified(iso: string): string {
   }
 }
 
-export function CanvasSwitcher({
-  editor,
-  onAuthError,
-}: {
-  editor: Editor
-  onAuthError: () => void
-}) {
+export function CanvasSwitcher({ editor }: { editor: Editor }) {
   const [active, setActive] = useState<ActiveCanvas>(() => readActive())
   const [dirty, setDirty] = useState(false)
   const [open, setOpen] = useState(false)
@@ -83,9 +77,13 @@ export function CanvasSwitcher({
   }, [editor])
 
   const handleError = (err: unknown): string => {
+    // A 401 from /library/* does NOT mean the operator token is bad —
+    // it means the Worker hasn't been granted library auth for this
+    // token (OPERATOR_TOKENS secret unset or missing this token). The
+    // MCP auth path is independent and still works. Do not clear the
+    // token; surface the configuration issue instead.
     if (err instanceof LibraryAuthError) {
-      onAuthError()
-      return 'Authentication failed — re-enter token.'
+      return 'Library unavailable (401). Worker needs OPERATOR_TOKENS — see docs/auth.md.'
     }
     if (err instanceof Error) return err.message
     return String(err)
@@ -97,16 +95,20 @@ export function CanvasSwitcher({
         type="button"
         onClick={() => setOpen(true)}
         style={{
+          // Sit just below tldraw's top-left Main Menu (which is at
+          // top:12 and ~40px tall). Classic "document title" location;
+          // stays out of the style panel's typical top-center area.
           position: 'fixed',
-          top: 12,
+          top: 60,
           left: 12,
-          zIndex: 1000,
+          zIndex: 400, // keep below tldraw's own popovers (tldraw uses 500+)
+          maxWidth: 280,
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          padding: '6px 12px',
-          borderRadius: 12,
-          border: 'none',
+          padding: '5px 10px',
+          borderRadius: 10,
+          border: '1px solid rgba(69, 71, 90, 0.6)',
           background: 'rgba(30, 30, 46, 0.85)',
           color: '#cdd6f4',
           fontFamily: 'ui-monospace, monospace',
@@ -117,7 +119,16 @@ export function CanvasSwitcher({
         title="Open canvas library"
       >
         <span style={{ color: '#6c7086' }}>Canvas:</span>
-        <span>{active?.name ?? 'untitled'}</span>
+        <span
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: 200,
+          }}
+        >
+          {active?.name ?? 'untitled'}
+        </span>
         {dirty && (
           <span
             aria-label="unsaved changes"
@@ -126,6 +137,7 @@ export function CanvasSwitcher({
               height: 6,
               borderRadius: '50%',
               background: '#f9e2af',
+              flexShrink: 0,
             }}
           />
         )}

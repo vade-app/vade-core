@@ -204,7 +204,7 @@ export default function App() {
           setEditor(e)
         }}
       />
-      {editor && <CanvasSwitcher editor={editor} onAuthError={clearToken} />}
+      {editor && <CanvasSwitcher editor={editor} />}
       <ConnectionIndicator bridge={bridge} onClearToken={clearToken} />
     </div>
   )
