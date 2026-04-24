@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { type Editor, useEditor } from 'tldraw'
 import {
   type CanvasMeta,
@@ -149,19 +150,26 @@ function CanvasSwitcherInner({ editor }: { editor: Editor }) {
         )}
       </button>
 
-      {open && (
-        <SwitcherModal
-          editor={editor}
-          active={active}
-          dirty={dirty}
-          onClose={() => setOpen(false)}
-          onActivate={(next, newDirty) => {
-            setActive(next)
-            setDirty(newDirty)
-          }}
-          handleError={handleError}
-        />
-      )}
+      {open &&
+        createPortal(
+          // Render into document.body so the modal escapes tldraw's
+          // SharePanel container. The SharePanel is wrapped in a UI
+          // layer with its own stacking context and pointer-events:
+          // none by default; without the portal, the modal backdrop
+          // doesn't catch clicks and the inner buttons are unreachable.
+          <SwitcherModal
+            editor={editor}
+            active={active}
+            dirty={dirty}
+            onClose={() => setOpen(false)}
+            onActivate={(next, newDirty) => {
+              setActive(next)
+              setDirty(newDirty)
+            }}
+            handleError={handleError}
+          />,
+          document.body,
+        )}
     </>
   )
 }
