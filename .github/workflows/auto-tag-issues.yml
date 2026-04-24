@@ -3,9 +3,7 @@ name: Auto-tag new issues
 # Canonical taxonomy: https://github.com/vade-app/vade-coo-memory/blob/main/coo/label_taxonomy.md
 # Canonical project:  https://github.com/orgs/vade-app/projects/1 (VADE)
 #   Project node ID:  PVT_kwDOEGdN_84BUV2r
-#   State field ID:   PVTSSF_lADOEGdN_84BUV2rzhBesRM
-#   planned option:   a5c0cccb
-# When taxonomy v2 lands or the VADE project is rebuilt, batch-update
+# When the VADE project is rebuilt or its fields change, batch-update
 # all 5 repos' workflows together.
 #
 # Mirrors the pilot on vade-coo-memory (see MEMO 2026-04-23-04 and the
@@ -26,9 +24,9 @@ name: Auto-tag new issues
 #     (https://github.com/apps/claude)
 # Optional (graceful skip if absent):
 #   - secrets.VADE_PROJECT_PAT — PAT with `project` scope for the
-#     vade-app org. Enables auto-add to the VADE project with
-#     State=planned. If missing, labeling still runs; the project
-#     step logs a warning and skips.
+#     vade-app org. Enables auto-add to the VADE project. If
+#     missing, labeling still runs; the project step logs a
+#     warning and skips.
 
 on:
   issues:
@@ -80,8 +78,8 @@ jobs:
           prompt: |
             You are a small, deterministic triage routine for the
             `vade-app/vade-core` repo. You classify one specific
-            issue, apply labels, and add it to the VADE project with
-            State=planned. You do nothing else.
+            issue, apply labels, and add it to the VADE project.
+            You do nothing else.
 
             Target issue number: ${{ github.event.issue.number || inputs.issue_number }}
 
@@ -167,7 +165,7 @@ jobs:
                you intended to apply. If any are missing, retry step
                3 for those.
 
-            5. **Add the issue to the VADE project with State=planned.**
+            5. **Add the issue to the VADE project.**
                Run this exact Bash block, replacing `<ISSUE_ID>` with
                the `id` you got in step 1:
 
@@ -177,13 +175,10 @@ jobs:
                      ITEM_ID=$(GH_TOKEN="$VADE_PROJECT_PAT" gh api graphql \
                        -f query='mutation { addProjectV2ItemById(input: {projectId: "PVT_kwDOEGdN_84BUV2r", contentId: "<ISSUE_ID>"}) { item { id } } }' \
                        -q '.data.addProjectV2ItemById.item.id')
-                     echo "Added to VADE as item $ITEM_ID"
-                     GH_TOKEN="$VADE_PROJECT_PAT" gh api graphql \
-                       -f query="mutation { updateProjectV2ItemFieldValue(input: { projectId: \"PVT_kwDOEGdN_84BUV2r\", itemId: \"$ITEM_ID\", fieldId: \"PVTSSF_lADOEGdN_84BUV2rzhBesRM\", value: { singleSelectOptionId: \"a5c0cccb\" } }) { projectV2Item { id } } }"
-                     echo "Set State=planned"
+                     echo "Added to VADE as item $ITEM_ID (default Status=Todo)"
                    fi
 
-               If the PAT is set and either mutation returns an error,
+               If the PAT is set and the mutation returns an error,
                report the error in your final message but do not retry
                destructively.
 
@@ -206,7 +201,7 @@ jobs:
             terminal state must be verified via `gh` output.
 
             Side-effect budget: labels only, plus the one VADE project
-            item from step 5 (with its State set). Do not edit the
+            item from step 5. Do not edit the
             title or body, do not post a comment, do not assign, do
             not close.
 
