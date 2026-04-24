@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Editor } from 'tldraw'
+import { type Editor, useEditor } from 'tldraw'
 import {
   type CanvasMeta,
   LibraryAuthError,
@@ -56,7 +56,16 @@ function fmtModified(iso: string): string {
   }
 }
 
-export function CanvasSwitcher({ editor }: { editor: Editor }) {
+// Entry point wired into <Tldraw components={{ SharePanel: CanvasSwitcher }} />.
+// Rendering inside tldraw's own chrome (top-right SharePanel slot) means the
+// chip can't collide with the Main Menu dropdown, style panel, or any other
+// tldraw popover — tldraw owns the layout.
+export function CanvasSwitcher() {
+  const editor = useEditor()
+  return <CanvasSwitcherInner editor={editor} />
+}
+
+function CanvasSwitcherInner({ editor }: { editor: Editor }) {
   const [active, setActive] = useState<ActiveCanvas>(() => readActive())
   const [dirty, setDirty] = useState(false)
   const [open, setOpen] = useState(false)
@@ -95,13 +104,10 @@ export function CanvasSwitcher({ editor }: { editor: Editor }) {
         type="button"
         onClick={() => setOpen(true)}
         style={{
-          // Sit just below tldraw's top-left Main Menu (which is at
-          // top:12 and ~40px tall). Classic "document title" location;
-          // stays out of the style panel's typical top-center area.
-          position: 'fixed',
-          top: 60,
-          left: 12,
-          zIndex: 400, // keep below tldraw's own popovers (tldraw uses 500+)
+          // Inline flow inside tldraw's SharePanel slot. No `position: fixed`;
+          // tldraw's layout owns the position, so the chip cannot overlap
+          // tldraw's Main Menu popover / style panel / anything else.
+          pointerEvents: 'all',
           maxWidth: 280,
           display: 'flex',
           alignItems: 'center',
