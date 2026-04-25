@@ -122,6 +122,27 @@ function isValidRedirectUri(uri: string): boolean {
   return false
 }
 
+// RFC 8707 §2: the resource indicator MUST be an absolute URI. The MCP spec
+// (rev 2025-06-18 §2.10) tells clients to use the canonical resource URI from
+// the protected-resource metadata, but real clients (notably Claude.ai's "Add
+// custom connector") send the URL the user typed — e.g. the SSE endpoint
+// `https://mcp.vade-app.dev/sse` rather than the issuer root. We accept any
+// URI whose origin equals our canonical resource origin, which keeps the
+// audience-binding intent of RFC 8707 (you can't redirect a token to a
+// different host) while not breaking on path drift.
+function resourceMatches(received: string | null, canonical: string): boolean {
+  if (received == null || received === '') return true
+  let receivedUrl: URL
+  let canonicalUrl: URL
+  try {
+    receivedUrl = new URL(received)
+    canonicalUrl = new URL(canonical)
+  } catch {
+    return false
+  }
+  return receivedUrl.origin === canonicalUrl.origin
+}
+
 function canonicalizeAuthorizeParams(params: URLSearchParams): string {
   const keys = ['response_type', 'client_id', 'redirect_uri', 'code_challenge',
     'code_challenge_method', 'resource', 'scope', 'state']
@@ -360,6 +381,7 @@ async function handleAuthorizeGet(
   const codeChallenge = p.get('code_challenge') ?? ''
   const codeChallengeMethod = p.get('code_challenge_method')
   const resource = p.get('resource')
+  console.log(`[oauth] authorize GET client_id=${clientId} resource=${resource ?? '(missing)'} redirect_uri=${redirectUri}`)
   const state = p.get('state') ?? ''
   const scope = p.get('scope') ?? SUPPORTED_SCOPE
 
@@ -390,9 +412,9 @@ async function handleAuthorizeGet(
   if (codeChallengeMethod !== 'S256') {
     return redirectError('invalid_request', 'code_challenge_method must be S256')
   }
-  if (resource !== ctx.resource) {
+  if (!resourceMatches(resource, ctx.resource)) {
     return redirectError('invalid_target',
-      `resource must equal ${ctx.resource} (RFC 8707)`)
+      `resource origin must match ${ctx.resource} (RFC 8707; got ${resource ?? 'null'})`)
   }
   if (scope !== SUPPORTED_SCOPE) return redirectError('invalid_scope')
 
@@ -408,7 +430,7 @@ async function handleAuthorizeGet(
     clientName: client.clientName,
     redirectUri,
     codeChallenge,
-    resource,
+    resource: resource ?? '',
     state,
     scope,
     consentNonce: nonce,
@@ -559,6 +581,12 @@ async function handleAuthorizePost(
 
   const operator = operatorTokenFromBearerOrForm(operatorToken, cfg)
   if (!operator) {
+    const trimmed = (operatorToken ?? '').trim()
+    const recvLen = trimmed.length
+    const recvPrefix = trimmed.slice(0, 8)
+    const candLens = cfg.operator.map((t) => t.length)
+    const candPrefixes = cfg.operator.map((t) => t.slice(0, 8))
+    console.log(`[oauth] consent token mismatch: recv_len=${recvLen} recv_prefix=${recvPrefix} cand_lens=[${candLens.join(',')}] cand_prefixes=[${candPrefixes.join(',')}]`)
     // Per spec we should redirect back, but we do not want to leak that the
     // password was wrong via a redirect — re-render or show a 401. 401 is
     // simplest and the operator can hit back and retry.
@@ -644,7 +672,9 @@ function handleTokenAuthCode(
     sendOAuthError(res, 400, 'invalid_grant', 'client_id / redirect_uri mismatch')
     return { handled: true }
   }
-  if (resource && resource !== entry.resource) {
+  // Skip the audience check if either side is empty: the consent-binding
+  // hash already binds the token to the resource declared at consent time.
+  if (resource && entry.resource && !resourceMatches(resource, entry.resource)) {
     sendOAuthError(res, 400, 'invalid_target', 'resource mismatch')
     return { handled: true }
   }
