@@ -1,82 +1,110 @@
 # Authentication
 
 Single-operator bearer-token auth for the hosted canvas and MCP
-service. Three client-facing surfaces are gated:
+service. **Two distinct secret values** in **four secret slots**:
 
-| Surface | Endpoint | How the token travels |
+| Value | Fly (`vade-mcp`) | Worker (`vade-core`) |
 |---|---|---|
-| Canvas SPA bootstrap | `https://vade-app.dev` | Prompt on first load, persisted in `localStorage` |
-| MCP SSE transport | `https://mcp.vade-app.dev/sse` + `/messages/<machine-id>` | `Authorization: Bearer <token>` |
-| Canvas↔MCP WebSocket | `wss://mcp.vade-app.dev/canvas` | `Sec-WebSocket-Protocol: vade-canvas, vade-auth.<token>` |
-| Canvas SPA → library | `https://vade-app.dev/library/*` | `Authorization: Bearer <token>` (operator token from `OPERATOR_TOKENS`) |
+| **Operator token** — typed into clients | `VADE_AUTH_TOKENS` (JSON `{"operator":[…],"agents":[]}`) | `OPERATOR_TOKENS` (same JSON) |
+| **Library service token** — never typed | `VADE_LIBRARY_BEARER` (hex string) | `LIBRARY_BEARER` (hex string) |
 
-Two Worker secrets gate `/library/*`:
+Plus `VADE_OAUTH_ENABLED=1` on Fly to surface the OAuth metadata
+endpoints for the Claude.ai custom-connector flow. That's the whole
+secret surface.
 
-- `LIBRARY_BEARER` (Worker) ↔ `VADE_LIBRARY_BEARER` (Fly) is the
-  service-to-service secret used by the Fly MCP container.
-- `OPERATOR_TOKENS` (Worker, optional) is a JSON document of the same
-  shape as Fly's `VADE_AUTH_TOKENS`. When set, any token listed in
-  `operator[]` or `agents[]` is accepted on `/library/*` in addition
-  to `LIBRARY_BEARER`. This is what the SPA CanvasSwitcher uses to
-  talk to the library with the operator's `localStorage` bearer.
+## First-time setup
 
-Trade-off. Accepting `OPERATOR_TOKENS` on `/library/*` widens the
-blast radius of a leaked operator token from "MCP surface only" to
-"MCP + library". The operator already holds write access to the
-library indirectly (via MCP tools on an authenticated session), so the
-net new capability a stolen token grants is direct library read/write
-without a live MCP session. M1's single-operator threat model accepts
-this; if an operator token ever shouldn't reach `/library/*`, unset
-`OPERATOR_TOKENS` and the Worker falls back to `LIBRARY_BEARER`-only.
+```sh
+OPERATOR=$(openssl rand -hex 32)
+SERVICE=$(openssl rand -hex 32)
 
-## Config shape
+# Fly (vade-mcp)
+flyctl secrets set \
+  VADE_AUTH_TOKENS="$(jq -cn --arg t "$OPERATOR" '{operator:[$t],agents:[]}')" \
+  VADE_LIBRARY_BEARER="$SERVICE" \
+  VADE_OAUTH_ENABLED=1 \
+  --app vade-mcp
 
-The MCP service reads a single JSON env var:
+# Worker (vade-core; run from this repo)
+echo "{\"operator\":[\"$OPERATOR\"],\"agents\":[]}" | wrangler secret put OPERATOR_TOKENS
+echo "$SERVICE" | wrangler secret put LIBRARY_BEARER
+
+# Save to 1Password / Keychain
+echo "Operator token (paste this into clients): $OPERATOR"
+```
+
+The Fly machine restarts (~15s) on each `flyctl secrets set`. The
+process **fails closed** if `VADE_AUTH_TOKENS` is unset in SSE mode.
+
+Then paste `$OPERATOR` into each client — see [Clients](#clients).
+
+## Inspect current state
+
+You can verify what's set without exposing values:
+
+```sh
+flyctl secrets list --app vade-mcp   # names + digests
+wrangler secret list                  # names only
+
+# Confirm which token the SPA is currently sending (8-char prefix
+# only; matches what the bridge logs accept):
+flyctl logs --app vade-mcp | grep "auth ok: operator"
+```
+
+If `OPERATOR_TOKENS` (Worker) and `VADE_AUTH_TOKENS` (Fly) hold
+different operator tokens, the SPA save path will 401 with
+*Library unavailable (401). Worker needs OPERATOR_TOKENS …* even
+though MCP/canvas WS still works. Both stores must hold the same
+operator token.
+
+Sanity-check the live endpoints:
+
+```sh
+curl -fsS https://mcp.vade-app.dev/healthz                  # → ok
+curl -sS -o /dev/null -w "%{http_code}\n" \
+  https://mcp.vade-app.dev/sse                              # → 401 (fail-closed)
+curl -fsS -H 'Accept: text/event-stream' \
+  -H "Authorization: Bearer $OPERATOR" \
+  https://mcp.vade-app.dev/sse | head -c 200                # → SSE stream
+curl -fsS https://mcp.vade-app.dev/.well-known/oauth-authorization-server \
+  | head -c 100                                             # → metadata JSON (only with VADE_OAUTH_ENABLED=1)
+```
+
+## Clients
+
+Three client surfaces consume the operator token:
+
+### Canvas SPA (iPad / desktop)
+
+1. Open `https://vade-app.dev`.
+2. Paste the operator token into the prompt, tap **Connect**.
+3. Stored in `localStorage` under `vade-auth-token`.
+4. Add to Home Screen for PWA mode.
+
+If the MCP indicator shows `bad token`, tap to clear and re-enter.
+
+### Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`
+(macOS) or the platform equivalent:
 
 ```json
 {
-  "operator": ["<operator-token-1>"],
-  "agents": []
+  "mcpServers": {
+    "vade-canvas": {
+      "type": "sse",
+      "url": "https://mcp.vade-app.dev/sse",
+      "headers": {
+        "Authorization": "Bearer <operator-token>"
+      }
+    }
+  }
 }
 ```
 
-`operator` is the operator's tokens (iPad PWA, personal Claude Code
-instances). `agents` reserves space for a future second principal
-(autonomous agent identities); M1 ships with it empty. Validation
-accepts any token from either list; the role is logged but not yet
-used for capability separation.
+Restart Claude Desktop. Tools appear under the hammer icon.
 
-## Mint a token
-
-```sh
-openssl rand -hex 32
-```
-
-Store in 1Password / Keychain. Never commit.
-
-## Set on Fly
-
-```sh
-TOKEN=$(openssl rand -hex 32)
-flyctl secrets set \
-  VADE_AUTH_TOKENS="$(jq -cn --arg t "$TOKEN" '{operator:[$t],agents:[]}')" \
-  --app vade-mcp
-```
-
-The Fly machine restarts automatically on secret change. If
-`VADE_AUTH_TOKENS` is unset when `VADE_MCP_TRANSPORT=sse`, the
-process exits at startup — **fail closed**.
-
-## iPad PWA first load
-
-1. Open `https://vade-app.dev`.
-2. Paste the token into the prompt, tap **Connect**.
-3. The token is stored in `localStorage` under `vade-auth-token`.
-4. Add to Home Screen for PWA mode.
-
-If the MCP indicator shows `bad token`, tap it to clear and re-enter.
-
-## Claude Code (remote MCP client)
+### Claude Code (remote MCP)
 
 Add to your Claude Code MCP config:
 
@@ -87,105 +115,120 @@ Add to your Claude Code MCP config:
       "type": "sse",
       "url": "https://mcp.vade-app.dev/sse",
       "headers": {
-        "Authorization": "Bearer <paste-token-here>"
+        "Authorization": "Bearer <operator-token>"
       }
     }
   }
 }
 ```
 
-Restart Claude Code so it picks up the new config. A full remote-MCP
-setup walkthrough lives under issue #11.
+Restart Claude Code so it picks up the new config.
 
-## Claude.ai (custom connector, OAuth)
+### Claude.ai (custom connector, OAuth)
 
-Claude.ai's "Add custom connector" UI requires OAuth 2.0 — it cannot
-paste a static bearer like Desktop or Code. The hosted server speaks
-the MCP authorization spec (revision 2025-06-18) when the
-`VADE_OAUTH_ENABLED` Fly secret is set.
-
-Setup, per Claude.ai user:
+Claude.ai's "Add custom connector" UI requires OAuth 2.1 + dynamic
+client registration — it cannot paste a static bearer the way
+Desktop or Code does. The hosted server speaks the MCP authorization
+spec (revision 2025-06-18) when `VADE_OAUTH_ENABLED=1` is set.
 
 1. Settings → Connectors → **Add custom connector**.
-2. Paste `https://mcp.vade-app.dev/sse` as the connector URL.
-3. Claude.ai discovers `/.well-known/oauth-authorization-server` and
-   registers itself dynamically (RFC 7591). No client_id to copy.
-4. Claude.ai opens the consent screen at `/oauth/authorize`. Paste
-   the same operator token used for Desktop / Code into the
-   "Operator token" field and click **Authorize**.
-5. The browser bounces back to Claude.ai with an authorization code,
-   exchanged at `/oauth/token` for access + refresh tokens.
-6. The connector shows "Connected" and `vade-canvas` tools surface in
-   conversations.
+2. URL: `https://mcp.vade-app.dev/sse`. Leave OAuth Client ID and
+   OAuth Client Secret **blank** — DCR fills them in automatically.
+3. Click **Add**. Claude.ai discovers
+   `/.well-known/oauth-authorization-server`, registers itself
+   dynamically (RFC 7591), and opens the consent screen at
+   `/oauth/authorize`.
+4. Paste the same operator token used for Desktop / Code into the
+   "Operator token" field. Click **Authorize**.
+5. The connector shows **Connected** and `vade-canvas` tools surface
+   in conversations.
 
-Issued tokens descend from the operator entry that approved the consent.
-They live in-memory on the Fly machine; restart loses them and
-Claude.ai re-runs the consent flow on the next 401. One extra click.
+OAuth-issued tokens descend from the operator entry that approved
+consent. They live in-memory on the Fly machine; restart loses them
+and Claude.ai re-runs consent on the next 401. Access tokens are
+prefixed `vade_at_`, refresh tokens `vade_rt_` — they never collide
+with the hex bearer tokens above.
 
-OAuth-issued access tokens are prefixed `vade_at_`, refresh tokens
-`vade_rt_` — they never collide with the hex-only bearer tokens above
-and never bypass the `mcp/auth.ts` principal lookup.
+The server's RFC 8707 `resource` validation accepts any URI whose
+origin matches `https://mcp.vade-app.dev` — Claude.ai sends the URL
+the user typed (e.g. `https://mcp.vade-app.dev/sse`) rather than
+the canonical resource URI advertised in metadata, and we accept
+both.
 
-Enable / disable, fully reversible:
-
-```sh
-flyctl secrets set VADE_OAUTH_ENABLED=1 --app vade-mcp     # enable
-flyctl secrets unset VADE_OAUTH_ENABLED --app vade-mcp     # disable
-```
-
-## Rotation
-
-1. Mint a new token.
-2. `flyctl secrets set VADE_AUTH_TOKENS='{"operator":["<new>"],"agents":[]}' --app vade-mcp`
-3. Wait for the Fly machine to restart (~15s).
-4. On the iPad: tap the `bad token` indicator, paste the new token.
-5. Update the Claude Code MCP config, restart Claude Code.
-
-To support zero-downtime rotation, include both old and new tokens
-in the operator array during a cutover window:
-
-```json
-{ "operator": ["<new>", "<old>"], "agents": [] }
-```
-
-OAuth-issued tokens are bound to the operator entry that approved
-their consent. When `VADE_AUTH_TOKENS` rotates, the startup sweep
-drops every issued OAuth token whose source operator entry is no
-longer present — Claude.ai's next request hits a 401 and re-runs
-the consent flow against the new operator token. One rotation
-regime, no parallel OAuth credential to manage.
-
-Then remove `<old>` after every client has moved over.
-
-### Rotating `OPERATOR_TOKENS` on the Worker
-
-The SPA → `/library/*` path reads the same operator token from
-`localStorage`, so the rotation checklist above covers it — the only
-extra step is publishing the new JSON to the Worker alongside Fly:
+Disable, fully reversible:
 
 ```sh
-echo '{"operator":["<new>"],"agents":[]}' | wrangler secret put OPERATOR_TOKENS
+flyctl secrets unset VADE_OAUTH_ENABLED --app vade-mcp
 ```
 
-Include both old and new tokens in `operator[]` during the cutover,
-same as Fly, and remove `<old>` after every client has migrated. If
-`OPERATOR_TOKENS` is unset, the Worker falls back to
-`LIBRARY_BEARER`-only — that was the pre-CanvasSwitcher posture.
+## Surfaces gated
+
+| Surface | Endpoint | How the token travels |
+|---|---|---|
+| Canvas SPA bootstrap | `https://vade-app.dev` | Prompt on first load, persisted in `localStorage` |
+| MCP SSE transport | `https://mcp.vade-app.dev/sse` + `/messages/<machine-id>` | `Authorization: Bearer <token>` |
+| Canvas↔MCP WebSocket | `wss://mcp.vade-app.dev/canvas` | `Sec-WebSocket-Protocol: vade-canvas, vade-auth.<token>` |
+| Canvas SPA → library | `https://vade-app.dev/library/*` | `Authorization: Bearer <operator-token>` (matched against `OPERATOR_TOKENS`) |
+| Fly MCP → library | `https://vade-app.dev/library/*` | `Authorization: Bearer <service-token>` (matched against `LIBRARY_BEARER`) |
+
+The Worker accepts `LIBRARY_BEARER` (service-to-service) **OR** any
+token in `OPERATOR_TOKENS.{operator,agents}[]` on `/library/*`.
+Both must be set for normal operation.
+
+## Trade-off — operator on `/library/*`
+
+Accepting `OPERATOR_TOKENS` on `/library/*` widens the blast radius
+of a leaked operator token from "MCP only" to "MCP + library". The
+operator already has indirect library write access via authenticated
+MCP tools; the new capability is direct library read/write without
+a live MCP session. M1's single-operator threat model accepts this.
+If the operator token shouldn't reach `/library/*`, unset
+`OPERATOR_TOKENS` and the Worker falls back to `LIBRARY_BEARER`-only.
+
+## Rotating the operator token
+
+```sh
+NEW=$(openssl rand -hex 32)
+
+# Update both stores. Include the old value during cutover for
+# zero-downtime rotation.
+flyctl secrets set \
+  VADE_AUTH_TOKENS="$(jq -cn --arg n "$NEW" --arg o "$OLD" '{operator:[$n,$o],agents:[]}')" \
+  --app vade-mcp
+echo "{\"operator\":[\"$NEW\",\"$OLD\"],\"agents\":[]}" | wrangler secret put OPERATOR_TOKENS
+
+# Update each client (SPA prompt / Claude Code config / 1Password).
+# Then drop $OLD from both arrays.
+```
+
+OAuth-issued `vade_at_*` tokens cascade-revoke on rotation: the
+Fly startup sweep drops every issued token whose source operator
+entry is no longer present, and Claude.ai re-runs consent on the
+next 401. One regime, no parallel OAuth credential to manage.
+
+## Rotating the library service token
+
+```sh
+NEW=$(openssl rand -hex 32)
+flyctl secrets set VADE_LIBRARY_BEARER="$NEW" --app vade-mcp
+echo "$NEW" | wrangler secret put LIBRARY_BEARER
+```
+
+Both restart on secret change; brief library-API downtime is
+expected (~15s on Fly side).
 
 ## Threat model (M1)
 
 In-scope:
-
-- Anonymous internet traffic hitting the hosted endpoints.
+- Anonymous internet traffic hitting hosted endpoints.
 - Accidental exposure of the canvas URL.
 
 Out-of-scope (M1 is single-operator):
-
-- Per-principal capability separation (role is logged, not enforced).
-- Token leakage via browser XSS — mitigated operationally (we run one
-  trusted SPA). Future hardening: move the token to an httpOnly
-  cookie with a same-origin proxy.
+- Per-principal capability separation (`operator` vs `agents` is
+  logged, not enforced).
+- Token leakage via browser XSS — mitigated operationally (one
+  trusted SPA). Future hardening: httpOnly cookie + same-origin
+  proxy.
 - WebSocket subprotocol logging — Fly's edge does not routinely log
-  `Sec-*` headers, but they can appear in verbose access logs. For
-  M1 this is acceptable; if it becomes load-bearing, switch to a
-  short-lived signed subprotocol token derived from the bearer.
+  `Sec-*` headers, but they may appear in verbose access logs.
+  Acceptable for M1.

@@ -72,10 +72,6 @@ on `:8080` with a WebSocket bridge at `/canvas`, and defaults
 Worker's library routes instead of a local filesystem. Redeploy with
 `flyctl deploy --app vade-mcp`.
 
-The two services share a bearer: the Worker holds it as
-`LIBRARY_BEARER` (`wrangler secret put`), the Fly container holds it
-as `VADE_LIBRARY_BEARER` (`flyctl secrets set`).
-
 CI/CD is wired via GitHub Actions (see
 [issue #10](https://github.com/vade-app/vade-core/issues/10)):
 
@@ -88,6 +84,21 @@ CI/CD is wired via GitHub Actions (see
   Worker deploy on push to `main`. A short commit SHA is baked into
   the build and surfaced in the canvas `ConnectionIndicator` so
   deploys are visually verifiable from iPad.
+
+## Auth and secrets
+
+Single-operator bearer model. **Two distinct secret values** across
+**four secret slots**:
+
+| Value | Fly (`vade-mcp`) | Worker (`vade-core`) |
+|---|---|---|
+| Operator token (typed into clients) | `VADE_AUTH_TOKENS` | `OPERATOR_TOKENS` |
+| Library service token (never typed)  | `VADE_LIBRARY_BEARER` | `LIBRARY_BEARER` |
+
+Plus `VADE_OAUTH_ENABLED=1` on Fly for the Claude.ai custom-connector
+flow. See [docs/auth.md](docs/auth.md) for the from-scratch setup
+script, rotation, client wiring (SPA / Claude Code / Claude.ai), and
+threat model. That file is the source of truth.
 
 ## Governance
 
