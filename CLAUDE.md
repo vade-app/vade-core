@@ -167,6 +167,37 @@ Deploys are triggered by Cloudflare's Git integration on push to
 Manual deploy from a local clone: `npm run deploy`. A proper
 GitHub Actions CI/CD pipeline is tracked under issue #10.
 
+## Auth and secrets
+
+Single-operator bearer-token model. **Two distinct secret values**
+across **four slots**, plus one feature flag:
+
+| Value | Fly (`vade-mcp`) | Worker (`vade-core`) |
+|---|---|---|
+| Operator token (typed into clients) | `VADE_AUTH_TOKENS` (JSON `{"operator":[…],"agents":[]}`) | `OPERATOR_TOKENS` (same JSON) |
+| Library service token (never typed) | `VADE_LIBRARY_BEARER` (hex string) | `LIBRARY_BEARER` (hex string) |
+
+Plus `VADE_OAUTH_ENABLED=1` on Fly to enable the Claude.ai
+custom-connector OAuth surface.
+
+The full setup, rotation, and threat-model spec lives in
+[`docs/auth.md`](docs/auth.md). That file is the source of truth.
+
+Inspect current state without exposing values:
+
+- `flyctl secrets list --app vade-mcp` — shows secret names + digests
+- `wrangler secret list` — shows Worker secret names
+- `flyctl logs --app vade-mcp` — bridge logs `auth ok: operator
+  <8-char-prefix>` on each successful WS auth, useful for confirming
+  which token the SPA is currently sending
+
+**Common foot-gun:** Worker `OPERATOR_TOKENS` and Fly
+`VADE_AUTH_TOKENS` must hold the **same** operator token(s).
+Updating one without the other surfaces as a 401 from
+`/library/canvases` (*Library unavailable (401). Worker needs
+OPERATOR_TOKENS …*) — and the SPA's MCP/canvas WS still works,
+which makes the drift easy to miss.
+
 ## MCP tools
 
 The MCP server exposes tools across three categories. See `mcp/`
