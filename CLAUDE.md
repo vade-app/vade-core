@@ -21,9 +21,9 @@ other `vade-app` repositories from sessions started here.
 
 ## Architecture (target)
 
-- Canvas-based UI built on **tldraw SDK** (currently pinned to
-  3.15.6; target v4.5.x once the v4 license gate is resolved —
-  see #32). tldraw provides the infinite canvas, pan/zoom,
+- Canvas-based UI built on **tldraw SDK** (^4.5.10; Hobby
+  License for `*.vade-app.dev` wired in #100, closed #32).
+  tldraw provides the infinite canvas, pan/zoom,
   gestures, touch/tablet support, shape system, and persistence.
   React 18 + TypeScript.
 - **MCP server** (`mcp/`) bridges Claude agents to the canvas via
@@ -41,7 +41,7 @@ other `vade-app` repositories from sessions started here.
 ## Tech stack
 
 - TypeScript (strict mode) + Node.js 20+ LTS
-- React 18 + tldraw 3.15.6 (pinned; target ^4.5.x — see #32)
+- React 18 + tldraw ^4.5.10
 - Vite for dev server and bundling
 - @modelcontextprotocol/sdk for MCP
 - ws (WebSocket) for MCP-to-canvas bridge
