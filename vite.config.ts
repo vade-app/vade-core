@@ -21,8 +21,14 @@ function resolveCommitSha(): string {
   }
 }
 
+// VADE_NO_CF=1 skips the Cloudflare Vite plugin — useful when no
+// `wrangler login` is available in the dev sandbox and only the
+// static SPA + public assets are needed (e.g. the lineage canvas
+// doesn't touch /library/*). Default behavior is unchanged.
+const skipCloudflare = process.env.VADE_NO_CF === '1'
+
 export default defineConfig({
-  plugins: [react(), cloudflare()],
+  plugins: skipCloudflare ? [react()] : [react(), cloudflare()],
   define: {
     'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(resolveCommitSha()),
   },

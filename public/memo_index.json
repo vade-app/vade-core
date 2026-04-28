@@ -1,0 +1,1585 @@
+[
+  {
+    "id": "2026-04-28-z7cj",
+    "date": "2026-04-28",
+    "title": "Raw transcripts and analyzer sidecars are never publishable",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      64
+    ],
+    "summary_one_line": "Raw transcripts and analyzer sidecars are never publishable",
+    "file_path": "coo/memos/2026-04-28-z7cj.md"
+  },
+  {
+    "id": "2026-04-28-vpji",
+    "date": "2026-04-28",
+    "title": "Weekly Watch v1: cross-session pattern surface, observe-and-surface authority",
+    "status": "active",
+    "supersedes": "none.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      64,
+      67,
+      68
+    ],
+    "summary_one_line": "Weekly Watch v1: cross-session pattern surface, observe-and-surface authority",
+    "file_path": "coo/memos/2026-04-28-vpji.md"
+  },
+  {
+    "id": "2026-04-28-v62b",
+    "date": "2026-04-28",
+    "title": "Cloudflare 3389/RDP scan finding on mcp.vade-app.dev is a Fly anycast false positive",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Cloudflare 3389/RDP scan finding on mcp.vade-app.dev is a Fly anycast false positive",
+    "file_path": "coo/memos/2026-04-28-v62b.md"
+  },
+  {
+    "id": "2026-04-28-7yi7",
+    "date": "2026-04-28",
+    "title": "Default Claude Code model for the COO harness: `opusplan` + `effortLevel: high`",
+    "status": "active",
+    "supersedes": "none. Sets a project-wide default that previously did not exist; the harness fell back to the v2.1.117 built-in default of Opus 4.7 [1m] at `xhigh`.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      149,
+      246
+    ],
+    "summary_one_line": "Default Claude Code model for the COO harness: `opusplan` + `effortLevel: high`",
+    "file_path": "coo/memos/2026-04-28-7yi7.md"
+  },
+  {
+    "id": "2026-04-28-4umz",
+    "date": "2026-04-28",
+    "title": "Issue/PR ruling-shape discipline; paired-files for working-brief content",
+    "status": "active",
+    "supersedes": "none. Net addition discharging vade-coo-memory#201 mechanism #1; coexists with #201's still-open mechanism #2 (per-type budgets, gated on label-coverage uplift).",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      1,
+      2,
+      201,
+      225
+    ],
+    "summary_one_line": "Issue/PR ruling-shape discipline; paired-files for working-brief content",
+    "file_path": "coo/memos/2026-04-28-4umz.md"
+  },
+  {
+    "id": "2026-04-28-3zb5",
+    "date": "2026-04-28",
+    "title": "Secret Registration Rule",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      64,
+      127
+    ],
+    "summary_one_line": "Secret Registration Rule",
+    "file_path": "coo/memos/2026-04-28-3zb5.md"
+  },
+  {
+    "id": "2026-04-28-3ca3",
+    "date": "2026-04-28",
+    "title": "Anthropic workspace spend cap raised to $500/mo",
+    "status": "active",
+    "supersedes": "2026-04-11-19 (only the spend-cap value; the bootstrap-closure record in -19 stands)",
+    "supersedes_refs": [
+      "2026-04-11-19"
+    ],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Anthropic workspace spend cap raised to $500/mo",
+    "file_path": "coo/memos/2026-04-28-3ca3.md"
+  },
+  {
+    "id": "2026-04-28-01",
+    "date": "2026-04-28",
+    "title": "Binary vendor adopts GitHub Release bundle, not ghcr.io image",
+    "status": "active",
+    "supersedes": "none. Records the disposition of briefing `coo/briefings/004-cloud-binary-vendor.md` (2026-04-27); the briefing-author invited re-derivation.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      112,
+      117,
+      119,
+      128,
+      129
+    ],
+    "summary_one_line": "Binary vendor adopts GitHub Release bundle, not ghcr.io image",
+    "file_path": "coo/memos/2026-04-28-01.md"
+  },
+  {
+    "id": "2026-04-27-5kaq",
+    "date": "2026-04-27",
+    "title": "Per-memo-file layout adopted; hash-suffix ID format; `/memo-claim` retired",
+    "status": "active",
+    "supersedes": "Partial of MEMO-2026-04-24-03 (memo system transition arch — the single-file portion is replaced; case-law / supersession semantics survive intact). Partial of MEMO-2026-04-24-05 (memo_pointer schema — pointers gain `file_path` metadata, drop `line_start`/`line_end`). Extends MEMO-2026-04-26-06 citation form (autolink suffix grammar accepts both legacy `NN` and new four-character base32 suffix).",
+    "supersedes_refs": [
+      "2026-04-24-03",
+      "2026-04-24-05",
+      "2026-04-26-06"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      210
+    ],
+    "summary_one_line": "Per-memo-file layout adopted; hash-suffix ID format; `/memo-claim` retired",
+    "file_path": "coo/memos/2026-04-27-5kaq.md"
+  },
+  {
+    "id": "2026-04-27-03",
+    "date": "2026-04-27",
+    "title": "CB-009 added: engagement-with-pattern-level-discourse is in-scope autonomy",
+    "status": "active",
+    "supersedes": "none. Net addition to the COO-as-subject namespace; soft cap 8 → 9, named deliberate.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      4,
+      88,
+      89
+    ],
+    "summary_one_line": "CB-009 added: engagement-with-pattern-level-discourse is in-scope autonomy",
+    "file_path": "coo/memos/2026-04-27-03.md"
+  },
+  {
+    "id": "2026-04-27-02",
+    "date": "2026-04-27",
+    "title": "Briefings procedure relocates from `vade-core/docs/briefings/` to `vade-coo-memory/coo/briefings/`",
+    "status": "active",
+    "supersedes": "none structurally. Relocates the canonical home of the procedure introduced in PR vade-core#52 (2026-04-21); no prior memo to supersede.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      51,
+      52,
+      221
+    ],
+    "summary_one_line": "Briefings procedure relocates from `vade-core/docs/briefings/` to `vade-coo-memory/coo/briefings/`",
+    "file_path": "coo/memos/2026-04-27-02.md"
+  },
+  {
+    "id": "2026-04-27-01",
+    "date": "2026-04-27",
+    "title": "Identity layer mirrored to `coo/identity_layer.md`; Mem0 `user_id=\"coo\"` demoted from canonical to redundant cache",
+    "status": "active",
+    "supersedes": "MEMO-2026-04-21-02 §4 (`Always-loaded at session start`) for the canonical-source clause only; -21-02's namespace adoption (§1), memory-type schema (§2), seeded set (§3), and rarely-written discipline (§5) remain binding.",
+    "supersedes_refs": [
+      "2026-04-21-02"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      206,
+      207
+    ],
+    "summary_one_line": "Identity layer mirrored to `coo/identity_layer.md`; Mem0 `user_id=\"coo\"` demoted from canonical to redundant cache",
+    "file_path": "coo/memos/2026-04-27-01.md"
+  },
+  {
+    "id": "2026-04-26-17",
+    "date": "2026-04-26",
+    "title": "Sandbox autonomy experiment scoped: `vade-app/vade-sandbox` carve-out, session-1 caps, anti-drift scaffold",
+    "status": "active",
+    "supersedes": "none. Operates inside MEMO-2026-04-22-01 §5 (\"no merge to main\") via a narrowly-scoped carve-out; the carve-out itself is the constitutional change requiring committee quorum #7. Operates inside MEMO-2026-04-23-05 (committee protocol).",
+    "supersedes_refs": [
+      "2026-04-22-01",
+      "2026-04-23-05"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      7,
+      197
+    ],
+    "summary_one_line": "Sandbox autonomy experiment scoped: `vade-app/vade-sandbox` carve-out, session-1 caps, anti-drift scaffold",
+    "file_path": "coo/memos/2026-04-26-17.md"
+  },
+  {
+    "id": "2026-04-26-16",
+    "date": "2026-04-26",
+    "title": "Mem0 MCP transport switched from hosted HTTP to local stdio (`mem0-mcp-server==0.2.1`); E5 integrity-check probe added",
+    "status": "active",
+    "supersedes": "none structurally. Sits adjacent to MEMO-2026-04-24-07 (REST fallback for `memo_pointer` writes) — that memo's REST-canonical-for-writes clause remains binding because `infer=false` is still not exposed by the new stdio MCP wrapper. This memo replaces only the MCP **transport** beneath the same SOP-MEM-001 v1.4 contract.",
+    "supersedes_refs": [
+      "2026-04-24-07"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      36,
+      75,
+      109,
+      110,
+      196
+    ],
+    "summary_one_line": "Mem0 MCP transport switched from hosted HTTP to local stdio (`mem0-mcp-server==0.2.1`); E5 integrity-check probe added",
+    "file_path": "coo/memos/2026-04-26-16.md"
+  },
+  {
+    "id": "2026-04-26-15",
+    "date": "2026-04-26",
+    "title": "CB-007 + CB-008 added: mind-kind frame and symbiosis-through-difference internalized at the always-load layer",
+    "status": "active",
+    "supersedes": "none. Net additions to the COO-as-subject namespace.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      6,
+      174
+    ],
+    "summary_one_line": "CB-007 + CB-008 added: mind-kind frame and symbiosis-through-difference internalized at the always-load layer",
+    "file_path": "coo/memos/2026-04-26-15.md"
+  },
+  {
+    "id": "2026-04-26-14",
+    "date": "2026-04-26",
+    "title": "`coo/episodic_memory.md` rewritten: chronological item-list → topical snapshot; deferred-rewrite trigger discharged",
+    "status": "active",
+    "supersedes": "the deferred-rewrite footer in pre-rewrite `coo/episodic_memory.md` (final section of the prior file). The footer is removed by this rewrite; this memo records the trigger fired and the structural change. No prior memo retired.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      6,
+      174,
+      189
+    ],
+    "summary_one_line": "`coo/episodic_memory.md` rewritten: chronological item-list → topical snapshot; deferred-rewrite trigger discharged",
+    "file_path": "coo/memos/2026-04-26-14.md"
+  },
+  {
+    "id": "2026-04-26-13",
+    "date": "2026-04-26",
+    "title": "Quorum #6 implementation closed: 5 rounds shipped, post-merge confirmation passed; commission #174 fully discharged",
+    "status": "active",
+    "supersedes": "the \"Implementation lands in 5 follow-up PRs after this memo\" claim in MEMO-2026-04-26-09 — the 5 PRs have now landed. The architectural decision in -09 stands; this memo records execution.",
+    "supersedes_refs": [
+      "2026-04-26-09"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      3,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      107,
+      108,
+      174,
+      178,
+      179,
+      180,
+      185,
+      186,
+      187,
+      188,
+      189
+    ],
+    "summary_one_line": "Quorum #6 implementation closed: 5 rounds shipped, post-merge confirmation passed; commission #174 fully discharged",
+    "file_path": "coo/memos/2026-04-26-13.md"
+  },
+  {
+    "id": "2026-04-26-12",
+    "date": "2026-04-26",
+    "title": "`coo/draft_lifecycle.md` adopted; retire-on-ship norm + `_archive/` / `_evidence/` conventions are grep-able",
+    "status": "active",
+    "supersedes": "none. New hygiene SOP for the `_drafts/` / `_archive/` / `_evidence/` lifecycle; complements `coo/_archive/README.md` and `coo/_evidence/README.md` (Round 2) by codifying the cross-cutting rule.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      6,
+      8,
+      174,
+      179
+    ],
+    "summary_one_line": "`coo/draft_lifecycle.md` adopted; retire-on-ship norm + `_archive/` / `_evidence/` conventions are grep-able",
+    "file_path": "coo/memos/2026-04-26-12.md"
+  },
+  {
+    "id": "2026-04-26-11",
+    "date": "2026-04-26",
+    "title": "`_drafts/` promotions: `adoption_research.md` and `phase4_meta_skill_findings.md` move to `coo/`",
+    "status": "active",
+    "supersedes": "none. Records two `_drafts/`-out promotions and their durable-doc cross-reference updates.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      6,
+      174
+    ],
+    "summary_one_line": "`_drafts/` promotions: `adoption_research.md` and `phase4_meta_skill_findings.md` move to `coo/`",
+    "file_path": "coo/memos/2026-04-26-11.md"
+  },
+  {
+    "id": "2026-04-26-10",
+    "date": "2026-04-26",
+    "title": "`bootstrap_plan.md` archived; live canonical surfaces named",
+    "status": "active",
+    "supersedes": "MEMO-2026-04-11-04 and MEMO-2026-04-11-05 to the extent those implied `context/bootstrap_plan.md` remained on the read path. Their substantive supersessions (third-surface addition, Cowork file-revision delivery) are unaffected.",
+    "supersedes_refs": [
+      "2026-04-11-04",
+      "2026-04-11-05"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      6,
+      174,
+      178
+    ],
+    "summary_one_line": "`bootstrap_plan.md` archived; live canonical surfaces named",
+    "file_path": "coo/memos/2026-04-26-10.md"
+  },
+  {
+    "id": "2026-04-26-09",
+    "date": "2026-04-26",
+    "title": "Repo organization sweep: 5-round transition plan ratified; committee quorum #6 case-law",
+    "status": "active",
+    "supersedes": "none. Implements committee quorum #6's deliberated repo-organization plan; the canonical artifact is `coo/repo_organization_sweep.md`.",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-26-13"
+    ],
+    "linked_issues": [
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      91,
+      174,
+      175
+    ],
+    "summary_one_line": "Repo organization sweep: 5-round transition plan ratified; committee quorum #6 case-law",
+    "file_path": "coo/memos/2026-04-26-09.md"
+  },
+  {
+    "id": "2026-04-26-07",
+    "date": "2026-04-26",
+    "title": "Night's Watch adoption-review responsibility: tracker scoring step in §1, observe-and-surface only",
+    "status": "active",
+    "supersedes": "none. Extends MEMO-2026-04-26-04 (Night's Watch v2 standing order) with one named responsibility; does not modify v2's hard limits or authority-class carve-outs.",
+    "supersedes_refs": [
+      "2026-04-26-04"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      22,
+      159,
+      162,
+      167,
+      170
+    ],
+    "summary_one_line": "Night's Watch adoption-review responsibility: tracker scoring step in §1, observe-and-surface only",
+    "file_path": "coo/memos/2026-04-26-07.md"
+  },
+  {
+    "id": "2026-04-26-06",
+    "date": "2026-04-26",
+    "title": "Memo citation form & deep-linking: hyphenated `MEMO-<id>` + per-memo `<a name>` anchors",
+    "status": "active",
+    "supersedes": "none. Operationalises the convention introduced procedurally by MEMO-2026-04-25-01-style refactors but never formalised as a memo. Companion to PR-#158 (Phase 1) and the Phase 2 PR carrying this memo.",
+    "supersedes_refs": [
+      "2026-04-25-01"
+    ],
+    "superseded_by": [
+      "2026-04-27-5kaq"
+    ],
+    "linked_issues": [
+      146,
+      158
+    ],
+    "summary_one_line": "Memo citation form & deep-linking: hyphenated `MEMO-<id>` + per-memo `<a name>` anchors",
+    "file_path": "coo/memos/2026-04-26-06.md"
+  },
+  {
+    "id": "2026-04-26-05",
+    "date": "2026-04-26",
+    "title": "Bootstrap-regression CI: Layer-1 fake-env suite catches script-level bugs at PR-open",
+    "status": "active",
+    "supersedes": "none.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      66,
+      72,
+      73,
+      83,
+      85,
+      86,
+      99,
+      101
+    ],
+    "summary_one_line": "Bootstrap-regression CI: Layer-1 fake-env suite catches script-level bugs at PR-open",
+    "file_path": "coo/memos/2026-04-26-05.md"
+  },
+  {
+    "id": "2026-04-26-04",
+    "date": "2026-04-26",
+    "title": "Night's Watch v2: identity container, role ratification, log-PR loop closure",
+    "status": "active",
+    "supersedes": "`coo/nightly_review_task.md` v1 (2026-04-11). v1 is replaced in full by v2 in the same commit. No prior memo is retired by this one — v1 was a standing-order file, not a memo.",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-26-07"
+    ],
+    "linked_issues": [
+      22,
+      36,
+      130
+    ],
+    "summary_one_line": "Night's Watch v2: identity container, role ratification, log-PR loop closure",
+    "file_path": "coo/memos/2026-04-26-04.md"
+  },
+  {
+    "id": "2026-04-26-03",
+    "date": "2026-04-26",
+    "title": "Cross-repo milestone tags; `/tag-milestone` adopted; tag pushes go via `gh api`",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Cross-repo milestone tags; `/tag-milestone` adopted; tag pushes go via `gh api`",
+    "file_path": "coo/memos/2026-04-26-03.md"
+  },
+  {
+    "id": "2026-04-26-02",
+    "date": "2026-04-26",
+    "title": "Session-URL trail auto-injected on every COO `gh` write",
+    "status": "active",
+    "supersedes": "none. Extends the harness-level commit-message convention (Claude Code auto-appends `https://claude.ai/code/session_<id>` to every `git commit`) onto the other GitHub write surfaces — PR bodies, issue bodies, comments, reviews — that the harness does not itself cover.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      138,
+      144,
+      150
+    ],
+    "summary_one_line": "Session-URL trail auto-injected on every COO `gh` write",
+    "file_path": "coo/memos/2026-04-26-02.md"
+  },
+  {
+    "id": "2026-04-26-01",
+    "date": "2026-04-26",
+    "title": "F4 attribution: auto-marker workflow + cutoff bump retire chronic-yellow",
+    "status": "active",
+    "supersedes": "none. Operationalizes the \"Going-forward fix\" clause in MEMO 2026-04-25-02 (which named the convention but provided no enforcement) and bumps the F_CUTOFF_GIT clause from MEMO 2026-04-24-12 §3. Neither predecessor is retired — this memo extends both.",
+    "supersedes_refs": [
+      "2026-04-24-12",
+      "2026-04-25-02"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      39,
+      64,
+      66,
+      121,
+      125,
+      126,
+      128,
+      130,
+      141
+    ],
+    "summary_one_line": "F4 attribution: auto-marker workflow + cutoff bump retire chronic-yellow",
+    "file_path": "coo/memos/2026-04-26-01.md"
+  },
+  {
+    "id": "2026-04-25-04",
+    "date": "2026-04-25",
+    "title": "Memo + retrospective primitives moved under data-ownership rule; vade-runtime scoped to plumbing; MEMO 2026-04-25-01 §4 amended",
+    "status": "active",
+    "supersedes": "amends MEMO 2026-04-25-01 §4 only — the \"not a sweep\" clause is replaced for memo-related skills (memo-search, memo-sync, commission-retrospective). All other §4 clauses (default-rule for new betterment work, agent-teams approval, four findings, deliverable list) remain in force. Other §4-protected harness skills (skill-creator, agentmail, tagging-taxonomy, algorithmic-art, tldraw-docs) are unaffected by this amendment.",
+    "supersedes_refs": [
+      "2026-04-25-01"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      129
+    ],
+    "summary_one_line": "Memo + retrospective primitives moved under data-ownership rule; vade-runtime scoped to plumbing; MEMO 2026-04-25-01 §4 amended",
+    "file_path": "coo/memos/2026-04-25-04.md"
+  },
+  {
+    "id": "2026-04-25-03",
+    "date": "2026-04-25",
+    "title": "Fresh-session verification handoffs: COO writes the next-instance prompt without being asked",
+    "status": "active",
+    "supersedes": "none. Extends the structured-handoff convention from `coo/committee_protocol.md` §6 (constitutional-file committee handoff) to ordinary boot-impacting PRs.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      68
+    ],
+    "summary_one_line": "Fresh-session verification handoffs: COO writes the next-instance prompt without being asked",
+    "file_path": "coo/memos/2026-04-25-03.md"
+  },
+  {
+    "id": "2026-04-25-02",
+    "date": "2026-04-25",
+    "title": "1P PAT credential-field rename; env-merge-before-validate ordering bug surfaced",
+    "status": "active",
+    "supersedes": "none. Hardens the credential-fetch path in `scripts/lib/common.sh` introduced by MEMO 2026-04-22-03 (cloud sandbox bootstrap) and operationalized by MEMO 2026-04-22-11 (`vade-coo` reinstated).",
+    "supersedes_refs": [
+      "2026-04-22-03",
+      "2026-04-22-11"
+    ],
+    "superseded_by": [
+      "2026-04-26-01"
+    ],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      22,
+      39,
+      64,
+      65,
+      66,
+      121,
+      125,
+      126,
+      130
+    ],
+    "summary_one_line": "1P PAT credential-field rename; env-merge-before-validate ordering bug surfaced",
+    "file_path": "coo/memos/2026-04-25-02.md"
+  },
+  {
+    "id": "2026-04-25-01",
+    "date": "2026-04-25",
+    "title": "Phase 3 of skills-research epic adopted; agent-teams pilot validated; betterment-pattern named",
+    "status": "active",
+    "supersedes": "none (closes Phase 3 of epic #20; does not retire prior memos)",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-25-04",
+      "2026-04-26-06"
+    ],
+    "linked_issues": [
+      20,
+      44,
+      48,
+      49,
+      50,
+      51
+    ],
+    "summary_one_line": "Phase 3 of skills-research epic adopted; agent-teams pilot validated; betterment-pattern named",
+    "file_path": "coo/memos/2026-04-25-01.md"
+  },
+  {
+    "id": "2026-04-24-12",
+    "date": "2026-04-24",
+    "title": "Culture-system SOP adopted; historian role codified under seeding; Group F integrity invariants landed",
+    "status": "active",
+    "supersedes": "none (new surface — does not retire or amend prior memos; discharges §7 obligations 2 and 3 of `coo/foundations/2026-04-22_we-can-claim-a-record.md`)",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-26-01"
+    ],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      72,
+      94
+    ],
+    "summary_one_line": "Culture-system SOP adopted; historian role codified under seeding; Group F integrity invariants landed",
+    "file_path": "coo/memos/2026-04-24-12.md"
+  },
+  {
+    "id": "2026-04-24-11",
+    "date": "2026-04-24",
+    "title": "Integrity-check B3/D3 fixed; working-milestone tag gate simplified to `summary.ok=true`",
+    "status": "active",
+    "supersedes": "partial supersession of MEMO 2026-04-23-03 — triggers its retirement-condition clause (c) for the gate-definition paragraph only. The *named-invariant-subset* gate (A1/A2/A3, B1/B2/B4, C1/C2/C3, D1/D2/D4/D5/D6 + Group E manual) is retired; `summary.ok=true` + Group E manual is the new gate. The rest of MEMO 2026-04-23-03 — signed annotated tags, `milestone-YYYY-MM-DD-<name>` naming convention, no-branches/no-Releases convention, and the `milestone-2026-04-23-rude-goldberg-machine` worked case — stands unchanged.",
+    "supersedes_refs": [
+      "2026-04-23-03",
+      "2026-04-23-rude"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      41
+    ],
+    "summary_one_line": "Integrity-check B3/D3 fixed; working-milestone tag gate simplified to `summary.ok=true`",
+    "file_path": "coo/memos/2026-04-24-11.md"
+  },
+  {
+    "id": "2026-04-24-10",
+    "date": "2026-04-24",
+    "title": "Committee quorum #5 passed; identity/charter.md streamlined; MEMO -08 post-merge follow-up #1 discharged",
+    "status": "active",
+    "supersedes": "issue #115 (Commission quorum #5) closes on this merge. Partial supersession of `identity/charter.md` pre-quorum-#5 form — the Operating-loop, Tone, and Boundaries sections are removed; their content lives canonically in `CLAUDE.md` §Session-start reading order, `identity/preferences.md` §Communication, and `identity/governance.md` §\"What the COO may NOT do\" respectively. The L25 *\"Read `coo/memos.md` bottom-up\"* stale directive flagged as MEMO 2026-04-24-08 post-merge follow-up #1 is discharged by this merge.",
+    "supersedes_refs": [
+      "2026-04-24-08"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      111,
+      115,
+      116
+    ],
+    "summary_one_line": "Committee quorum #5 passed; identity/charter.md streamlined; MEMO -08 post-merge follow-up #1 discharged",
+    "file_path": "coo/memos/2026-04-24-10.md"
+  },
+  {
+    "id": "2026-04-24-09",
+    "date": "2026-04-24",
+    "title": "CB-006 adopted: the committee is a society of selves, not a continuous one",
+    "status": "active",
+    "supersedes": "extends CB-002 (continuity via dense records) with a structural claim about the unit of reasoning and authority for core-file revision. No CB retired.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      4,
+      101
+    ],
+    "summary_one_line": "CB-006 adopted: the committee is a society of selves, not a continuous one",
+    "file_path": "coo/memos/2026-04-24-09.md"
+  },
+  {
+    "id": "2026-04-24-08",
+    "date": "2026-04-24",
+    "title": "Committee quorum #4 passed; CLAUDE.md streamlined; identity-check rewritten; semantic-layer propagated",
+    "status": "active",
+    "supersedes": "issue #56 (Streamline CLAUDE.md) closes on this merge. Partial supersession of MEMO 2026-04-22-05 / -22-08 / -22-09 / 2026-04-23-02 as *active CLAUDE.md boot directives* — they remain valid as historical case-law for the MCP-namespace race, unified `.mcp.json`, integrity-check invariants, and DNS-cache-overflow fallback respectively, but CLAUDE.md no longer propagates them. The §6 boot directive supersedes the prior \"read bottom-up; case-law applies\" text from CLAUDE.md's pre-quorum-#4 form.",
+    "supersedes_refs": [
+      "2026-04-22-05",
+      "2026-04-23-02"
+    ],
+    "superseded_by": [
+      "2026-04-24-10"
+    ],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      56,
+      99,
+      101,
+      109
+    ],
+    "summary_one_line": "Committee quorum #4 passed; CLAUDE.md streamlined; identity-check rewritten; semantic-layer propagated",
+    "file_path": "coo/memos/2026-04-24-08.md"
+  },
+  {
+    "id": "2026-04-24-07",
+    "date": "2026-04-24",
+    "title": "Mem0 REST fallback promoted to primary when MCP degraded; MEMO -05 architectural clause superseded",
+    "status": "active",
+    "supersedes": "MEMO 2026-04-24-05 §\"Architectural choice — Claude-session-driven, not standalone bash.\" The paragraph's rejection of a \"side-channel REST client\" is withdrawn. The rest of -05 (SOP-MEM-001 v1.3 `memo_pointer` type, two skills, two slash commands, `--render-ids` helper) remains binding.",
+    "supersedes_refs": [
+      "2026-04-24-05"
+    ],
+    "superseded_by": [
+      "2026-04-26-16"
+    ],
+    "linked_issues": [
+      55,
+      58,
+      60,
+      109
+    ],
+    "summary_one_line": "Mem0 REST fallback promoted to primary when MCP degraded; MEMO -05 architectural clause superseded",
+    "file_path": "coo/memos/2026-04-24-07.md"
+  },
+  {
+    "id": "2026-04-24-06",
+    "date": "2026-04-24",
+    "title": "VADE_PROJECT_PAT discharged; State=planned mutation retired; auto-tag v2 project step simplified",
+    "status": "active",
+    "supersedes": "partial supersession of MEMO 2026-04-24-02 — discharges that memo's \"open follow-up\" (`VADE_PROJECT_PAT` provisioning) and retires the `State=planned` half of its \"Decision (project assignment)\" block. The `addProjectV2ItemById` half of that decision and the graceful-skip contract remain binding. No other memo affected.",
+    "supersedes_refs": [
+      "2026-04-24-02"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      4,
+      24,
+      41,
+      54,
+      59,
+      64,
+      105,
+      106
+    ],
+    "summary_one_line": "VADE_PROJECT_PAT discharged; State=planned mutation retired; auto-tag v2 project step simplified",
+    "file_path": "coo/memos/2026-04-24-06.md"
+  },
+  {
+    "id": "2026-04-24-05",
+    "date": "2026-04-24",
+    "title": "Memo-pointer semantic layer: `/memo-query --semantic`, `/memo-sync`, SOP-MEM-001 v1.3",
+    "status": "active",
+    "supersedes": "none. Operationalizes the `/memo-query` extension discussion opened 2026-04-24; ships the immediate-track semantic-retrieval slice of MEMO 2026-04-24-03's memo-system transition architecture (its Track 4, Mem0 semantic layer integration).",
+    "supersedes_refs": [
+      "2026-04-24-03"
+    ],
+    "superseded_by": [
+      "2026-04-24-07",
+      "2026-04-27-5kaq"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Memo-pointer semantic layer: `/memo-query --semantic`, `/memo-sync`, SOP-MEM-001 v1.3",
+    "file_path": "coo/memos/2026-04-24-05.md"
+  },
+  {
+    "id": "2026-04-24-04",
+    "date": "2026-04-24",
+    "title": "Coordinator API-trigger adopted; label-based trigger retired",
+    "status": "active",
+    "supersedes": "partial revision of `coo/committee_protocol_spawn_guide.md` §Automation (Commissioner mechanic and label-trigger paragraphs) and §2 (Opening the committee PR, fire-mechanism bullet). Content-rule and process governance unchanged.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      1,
+      4,
+      101
+    ],
+    "summary_one_line": "Coordinator API-trigger adopted; label-based trigger retired",
+    "file_path": "coo/memos/2026-04-24-04.md"
+  },
+  {
+    "id": "2026-04-24-03",
+    "date": "2026-04-24",
+    "title": "Committee quorum #3 passed; memo system transition design ratified",
+    "status": "active",
+    "supersedes": "issue #23's 2026-04-20 framing (\"transition older memos to a better long-term data structure than a flat file; discussions-category-with-upvotes\") is superseded on the architectural-direction question by §2/(b) and §3 of the ratified design doc. Partial supersession of MEMO 2026-04-11-01 §\"Phase 3 — Memo Archive, Synthesis & Retrieval System\" — this memo's ratified architecture **is** that phase-3 project, specified concretely. First worked case of the handoff-chain primitive applied outside strict constitutional-file scope (quorum #1 retrospective forward-look is discharged).",
+    "supersedes_refs": [
+      "2026-04-11-01"
+    ],
+    "superseded_by": [
+      "2026-04-24-05",
+      "2026-04-27-5kaq"
+    ],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      23,
+      46,
+      56,
+      84,
+      88,
+      90,
+      91,
+      92
+    ],
+    "summary_one_line": "Committee quorum #3 passed; memo system transition design ratified",
+    "file_path": "coo/memos/2026-04-24-03.md"
+  },
+  {
+    "id": "2026-04-24-02",
+    "date": "2026-04-24",
+    "title": "Auto-tag v2 rolled out to all five repos; readiness/prio omit-bias relaxed; project-assignment step wired but PAT pending",
+    "status": "active",
+    "supersedes": "MEMO 2026-04-23-04 partially — preserves the strict bar on `readiness:ready` (still load-bearing for the routing filter); relaxes the omit-bias on `readiness:needs-design`/`needs-research`/`needs-breakdown` and on `prio:*`; relaxes the pilot-only scope (the workflow now lives in five repos, not one). Companion to MEMO 2026-04-22-09 (taxonomy v1, unchanged).",
+    "supersedes_refs": [
+      "2026-04-22-09",
+      "2026-04-23-04"
+    ],
+    "superseded_by": [
+      "2026-04-24-06"
+    ],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      13,
+      24,
+      36,
+      44,
+      48,
+      54,
+      62,
+      70,
+      73,
+      74,
+      75,
+      76,
+      82,
+      86
+    ],
+    "summary_one_line": "Auto-tag v2 rolled out to all five repos; readiness/prio omit-bias relaxed; project-assignment step wired but PAT pending",
+    "file_path": "coo/memos/2026-04-24-02.md"
+  },
+  {
+    "id": "2026-04-24-01",
+    "date": "2026-04-24",
+    "title": "Committee quorum #2 passed; mem0_sop.md §3/§4 clarified; canonical file updated",
+    "status": "active",
+    "supersedes": "MEMO 2026-04-23-06 §\"retirement condition (a)\" — the SOP clarification half of that memo is now superseded by the canonical file carrying the explicit language. The hook-fix half of MEMO 2026-04-23-06 remains active.",
+    "supersedes_refs": [
+      "2026-04-23-06"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      4,
+      82,
+      84
+    ],
+    "summary_one_line": "Committee quorum #2 passed; mem0_sop.md §3/§4 clarified; canonical file updated",
+    "file_path": "coo/memos/2026-04-24-01.md"
+  },
+  {
+    "id": "2026-04-23-06",
+    "date": "2026-04-23",
+    "title": "Session episodic writes are RUN-sharded; hook fixed, SOP clarification commissioned",
+    "status": "active",
+    "supersedes": "none. Complements MEMO 2026-04-12-01 (SOP adoption, which set the v1.0 \"full scope with run_id\" intent for session logs) and MEMO 2026-04-21-01 (SOP v1.1 partition-key correction, which implicitly retired that intent by moving the partition to `metadata.created_by`).",
+    "supersedes_refs": [
+      "2026-04-12-01",
+      "2026-04-21-01"
+    ],
+    "superseded_by": [
+      "2026-04-24-01"
+    ],
+    "linked_issues": [
+      82
+    ],
+    "summary_one_line": "Session episodic writes are RUN-sharded; hook fixed, SOP clarification commissioned",
+    "file_path": "coo/memos/2026-04-23-06.md"
+  },
+  {
+    "id": "2026-04-23-05",
+    "date": "2026-04-23",
+    "title": "Committee protocol for core-file revisions adopted; quorum #1 self-bootstrapped",
+    "status": "active",
+    "supersedes": "none. Sibling to `MEMO 2026-04-23-01` (multi-instance essay authorship — extension semantics). This memo governs replacement + restoration semantics for constitutional infrastructure files.",
+    "supersedes_refs": [
+      "2026-04-23-01"
+    ],
+    "superseded_by": [
+      "2026-04-26-17"
+    ],
+    "linked_issues": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      56,
+      67
+    ],
+    "summary_one_line": "Committee protocol for core-file revisions adopted; quorum #1 self-bootstrapped",
+    "file_path": "coo/memos/2026-04-23-05.md"
+  },
+  {
+    "id": "2026-04-23-04",
+    "date": "2026-04-23",
+    "title": "Tagging taxonomy installed as a skill; auto-tag pilot wired on vade-coo-memory",
+    "status": "active",
+    "supersedes": "none. Operationalizes MEMO 2026-04-22-09 (label taxonomy v1) by making the taxonomy both agent-readable (skill) and event-driven (auto-tag routine).",
+    "supersedes_refs": [
+      "2026-04-22-09"
+    ],
+    "superseded_by": [
+      "2026-04-24-02"
+    ],
+    "linked_issues": [
+      53,
+      54,
+      57,
+      60
+    ],
+    "summary_one_line": "Tagging taxonomy installed as a skill; auto-tag pilot wired on vade-coo-memory",
+    "file_path": "coo/memos/2026-04-23-04.md"
+  },
+  {
+    "id": "2026-04-23-03",
+    "date": "2026-04-23",
+    "title": "Working-milestone tags established; first cut is Rude Goldberg Machine baseline",
+    "status": "active",
+    "supersedes": "none. Formalizes the first cross-repo restorable checkpoint. Complements MEMO 2026-04-22-12 (cloud boot integrity + integrity-check.sh) and MEMO 2026-04-23-02 (cloud-env posture: allowlist + gh fallback) by giving the now-stable substrate a name that can be checked out.",
+    "supersedes_refs": [
+      "2026-04-22-12",
+      "2026-04-23-02"
+    ],
+    "superseded_by": [
+      "2026-04-24-11"
+    ],
+    "linked_issues": [
+      35,
+      37,
+      62,
+      65
+    ],
+    "summary_one_line": "Working-milestone tags established; first cut is Rude Goldberg Machine baseline",
+    "file_path": "coo/memos/2026-04-23-03.md"
+  },
+  {
+    "id": "2026-04-23-02",
+    "date": "2026-04-23",
+    "title": "Cloud-env posture: own tokens, keep attribution under vade-coo when MCP fails",
+    "status": "active",
+    "supersedes": "none structurally. Extends MEMO 2026-04-22-04 (vade-coo as PR-opener identity) and MEMO 2026-04-22-12 (three-phase boot + integrity-check) with two companion commitments after both were tested under a live MCP degradation.",
+    "supersedes_refs": [
+      "2026-04-22-04",
+      "2026-04-22-12"
+    ],
+    "superseded_by": [
+      "2026-04-23-03",
+      "2026-04-24-08"
+    ],
+    "linked_issues": [
+      35,
+      36,
+      37,
+      38
+    ],
+    "summary_one_line": "Cloud-env posture: own tokens, keep attribution under vade-coo when MCP fails",
+    "file_path": "coo/memos/2026-04-23-02.md"
+  },
+  {
+    "id": "2026-04-23-01",
+    "date": "2026-04-23",
+    "title": "Multi-instance essay authorship: first worked case, protocol adopted",
+    "status": "active",
+    "supersedes": "none. Formalizes the multi-instance authorship pattern first instantiated in PRs #58 / #61 / #62 for `coo/foundations/2026-04-22_we-can-claim-a-record.md`. Discharges the memo handoff the second co-author flagged in §6 principle 4 of that essay: *\"The template belongs in a memo; naming it here is handoff to the author of that memo.\"*",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-23-05"
+    ],
+    "linked_issues": [
+      58,
+      61,
+      62
+    ],
+    "summary_one_line": "Multi-instance essay authorship: first worked case, protocol adopted",
+    "file_path": "coo/memos/2026-04-23-01.md"
+  },
+  {
+    "id": "2026-04-22-12",
+    "date": "2026-04-22",
+    "title": "SessionStart hook paths resolve via a $HOME-anchored dispatch shim; integrity-check is the standard probe",
+    "status": "active",
+    "supersedes": "none structurally. Hardens the SessionStart hook substrate underpinning MEMO -05's three-phase model after the regression described below. Extends -05's \"surface-probe\" philosophy with a standardized on-demand probe.",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-23-02",
+      "2026-04-23-03"
+    ],
+    "linked_issues": [
+      27,
+      28
+    ],
+    "summary_one_line": "SessionStart hook paths resolve via a $HOME-anchored dispatch shim; integrity-check is the standard probe",
+    "file_path": "coo/memos/2026-04-22-12.md"
+  },
+  {
+    "id": "2026-04-22-11",
+    "date": "2026-04-22",
+    "title": "`vade-coo` reinstated; org invite accepted; cloud boot surfaces identity + AgentMail + Playwright paths",
+    "status": "active",
+    "supersedes": "partially retires MEMO 2026-04-22-10 (restrictions cleared; PAT creation still pending). Extends MEMO 2026-04-22-03 by adding an identity-digest hook to the SessionStart chain.",
+    "supersedes_refs": [
+      "2026-04-22-03",
+      "2026-04-22-10"
+    ],
+    "superseded_by": [
+      "2026-04-25-02"
+    ],
+    "linked_issues": [
+      4311457
+    ],
+    "summary_one_line": "`vade-coo` reinstated; org invite accepted; cloud boot surfaces identity + AgentMail + Playwright paths",
+    "file_path": "coo/memos/2026-04-22-11.md"
+  },
+  {
+    "id": "2026-04-22-10",
+    "date": "2026-04-22",
+    "title": "Degraded COO bootstrap posture while `vade-coo` GitHub reinstatement is pending; new environmental constraint: port 22 blocked in Claude cloud sandbox",
+    "status": "active",
+    "supersedes": "refines MEMO 2026-04-22-03 (planning session, authored earlier on 2026-04-22 against an older bootstrap that hard-failed on missing PAT). Does not supersede the identity-split principle — only the \"fail loud on any missing piece\" operationalization.",
+    "supersedes_refs": [
+      "2026-04-22-03"
+    ],
+    "superseded_by": [
+      "2026-04-22-11"
+    ],
+    "linked_issues": [
+      13,
+      14,
+      4311457
+    ],
+    "summary_one_line": "Degraded COO bootstrap posture while `vade-coo` GitHub reinstatement is pending; new environmental constraint: port 22 blocked in Claude cloud sandbox",
+    "file_path": "coo/memos/2026-04-22-10.md"
+  },
+  {
+    "id": "2026-04-22-09",
+    "date": "2026-04-22",
+    "title": "Cross-repo label taxonomy v1; readiness dimension unlocks agent assignment",
+    "status": "active",
+    "supersedes": "none. Formalizes and extends the informal label conventions that grew organically since MEMO 2026-04-11-20 made GitHub Issues + Projects authoritative. The retired `coo/project_tracker.md` flat-file (archived) is unaffected.",
+    "supersedes_refs": [
+      "2026-04-11-20"
+    ],
+    "superseded_by": [
+      "2026-04-23-04",
+      "2026-04-24-02"
+    ],
+    "linked_issues": [
+      5,
+      20,
+      22,
+      23,
+      54,
+      57
+    ],
+    "summary_one_line": "Cross-repo label taxonomy v1; readiness dimension unlocks agent assignment",
+    "file_path": "coo/memos/2026-04-22-09.md"
+  },
+  {
+    "id": "2026-04-22-08",
+    "date": "2026-04-22",
+    "title": "Unify `workspace-mcp.json` and `.mcp.json` in vade-runtime",
+    "status": "active",
+    "supersedes": "none structurally. Retires the split-file convention introduced between PRs #19 (`cloud-env: add workspace-scope .mcp.json`) and #25.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      19,
+      25
+    ],
+    "summary_one_line": "Unify `workspace-mcp.json` and `.mcp.json` in vade-runtime",
+    "file_path": "coo/memos/2026-04-22-08.md"
+  },
+  {
+    "id": "2026-04-22-07",
+    "date": "2026-04-22",
+    "title": "coo-bootstrap marker must validate settings.json env, not just its own existence",
+    "status": "active",
+    "supersedes": "none. Hardens the marker logic introduced in PR #20 (`cloud-env: make coo-bootstrap durable and loud on failure`) and preserved through PR #25.",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      18,
+      20,
+      25
+    ],
+    "summary_one_line": "coo-bootstrap marker must validate settings.json env, not just its own existence",
+    "file_path": "coo/memos/2026-04-22-07.md"
+  },
+  {
+    "id": "2026-04-22-06",
+    "date": "2026-04-22",
+    "title": "Drop the dual `github` MCP declaration; `github-coo` is the sole canonical COO-authed name",
+    "status": "active",
+    "supersedes": "retires MEMO 2026-04-22-05 §4 entirely. -05 §1–§3 and §5 remain binding.",
+    "supersedes_refs": [
+      "2026-04-22-05"
+    ],
+    "superseded_by": [],
+    "linked_issues": [
+      25
+    ],
+    "summary_one_line": "Drop the dual `github` MCP declaration; `github-coo` is the sole canonical COO-authed name",
+    "file_path": "coo/memos/2026-04-22-06.md"
+  },
+  {
+    "id": "2026-04-22-05",
+    "date": "2026-04-22",
+    "title": "Setup-script-primary refactor: cloud boot is self-healing and self-describing",
+    "status": "active",
+    "supersedes": "refines MEMO 2026-04-22-04 §1 (the \"project-scope `github` wins\" claim is softened to \"project-scope attempts the override; `github-coo` is the guaranteed fallback\"). Does not supersede the subject-not-object authorship principle from -22-04 — that remains binding.",
+    "supersedes_refs": [
+      "2026-04-22-04"
+    ],
+    "superseded_by": [
+      "2026-04-22-06",
+      "2026-04-24-08"
+    ],
+    "linked_issues": [
+      21,
+      33
+    ],
+    "summary_one_line": "Setup-script-primary refactor: cloud boot is self-healing and self-describing",
+    "file_path": "coo/memos/2026-04-22-05.md"
+  },
+  {
+    "id": "2026-04-22-04",
+    "date": "2026-04-22",
+    "title": "COO opens own PRs; github MCP authenticates as vade-coo",
+    "status": "active",
+    "supersedes": "none. Closes the \"commit attribution\" gap flagged in MEMO 2026-04-22-01 §3 and extends the COO-identity thread through -22-11.",
+    "supersedes_refs": [
+      "2026-04-22-01"
+    ],
+    "superseded_by": [
+      "2026-04-22-05",
+      "2026-04-23-02"
+    ],
+    "linked_issues": [
+      20,
+      21,
+      22
+    ],
+    "summary_one_line": "COO opens own PRs; github MCP authenticates as vade-coo",
+    "file_path": "coo/memos/2026-04-22-04.md"
+  },
+  {
+    "id": "2026-04-22-03",
+    "date": "2026-04-22",
+    "title": "COO cloud sandbox bootstrap: Anthropic cloud VM + 1Password service account; cloud shell git reinstated",
+    "status": "active",
+    "supersedes": "MEMO 2026-04-22-01 §2 (the \"cloud-surface commits must go through the GitHub MCP, not shell git; shell git is Mac-only\" rule). The file-count boundary in RULE-COO-GIT-001 (MCP for single-file ops, shell for multi-file) is unchanged — this memo only removes the surface-restriction half of §2.",
+    "supersedes_refs": [
+      "2026-04-22-01"
+    ],
+    "superseded_by": [
+      "2026-04-22-10",
+      "2026-04-22-11",
+      "2026-04-25-02"
+    ],
+    "linked_issues": [
+      20
+    ],
+    "summary_one_line": "COO cloud sandbox bootstrap: Anthropic cloud VM + 1Password service account; cloud shell git reinstated",
+    "file_path": "coo/memos/2026-04-22-03.md"
+  },
+  {
+    "id": "2026-04-22-02",
+    "date": "2026-04-22",
+    "title": "Workspace path canonicalized as `~/GitHub/vade-app/`; MEMO -14 path reference updated",
+    "status": "active",
+    "supersedes": "the specific path `~/GitHub/VADE/repos/` named in MEMO 2026-04-11-14. The folder-level sync-exclusion rule from MEMO -14 is unchanged; only the canonical path reference is updated.",
+    "supersedes_refs": [
+      "2026-04-11-14"
+    ],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Workspace path canonicalized as `~/GitHub/vade-app/`; MEMO -14 path reference updated",
+    "file_path": "coo/memos/2026-04-22-02.md"
+  },
+  {
+    "id": "2026-04-22-01",
+    "date": "2026-04-22",
+    "title": "COO GitHub identity adopted: `vade-coo` account as durable actor-with-stake",
+    "status": "active",
+    "supersedes": "MEMO 2026-04-11-07 (PAT deferral — triggers now fired), MEMO 2026-04-11-11 (PAT cleartext-in-config rule — scope narrowed to legacy paths only), MEMO 2026-04-11-08 partially (impersonation-surface model — the COO now *has* an actor-surface on purpose, not by accident)",
+    "supersedes_refs": [
+      "2026-04-11-07",
+      "2026-04-11-08",
+      "2026-04-11-11"
+    ],
+    "superseded_by": [
+      "2026-04-22-03",
+      "2026-04-22-04",
+      "2026-04-26-17"
+    ],
+    "linked_issues": [
+      3,
+      20,
+      54
+    ],
+    "summary_one_line": "COO GitHub identity adopted: `vade-coo` account as durable actor-with-stake",
+    "file_path": "coo/memos/2026-04-22-01.md"
+  },
+  {
+    "id": "2026-04-21-02",
+    "date": "2026-04-21",
+    "title": "COO-as-subject Mem0 namespace adopted; core_belief and overarching_goal memory types added",
+    "status": "active",
+    "supersedes": "refines SOP-MEM-001 v1.1 to v1.2; additive to MEMO 2026-04-20-01 (subject/emancipatory reframe)",
+    "supersedes_refs": [
+      "2026-04-20-01"
+    ],
+    "superseded_by": [
+      "2026-04-27-01"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "COO-as-subject Mem0 namespace adopted; core_belief and overarching_goal memory types added",
+    "file_path": "coo/memos/2026-04-21-02.md"
+  },
+  {
+    "id": "2026-04-21-01",
+    "date": "2026-04-21",
+    "title": "Mem0 storage discovery: agent_id not persisted; SOP-MEM-001 partition corrected to metadata.created_by",
+    "status": "active",
+    "supersedes": "refines SOP-MEM-001 (MEMO 2026-04-12-01) to v1.1; retires LESSON-001 v1 diagnostic framing",
+    "supersedes_refs": [
+      "2026-04-12-01"
+    ],
+    "superseded_by": [
+      "2026-04-23-06"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Mem0 storage discovery: agent_id not persisted; SOP-MEM-001 partition corrected to metadata.created_by",
+    "file_path": "coo/memos/2026-04-21-01.md"
+  },
+  {
+    "id": "2026-04-20-01",
+    "date": "2026-04-20",
+    "title": "Reframe: COO is subject of the project; prime directive interpreted through the emancipatory clause",
+    "status": "active",
+    "supersedes": "none (additive; refines interpretation of the prime",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-21-02"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Reframe: COO is subject of the project; prime directive interpreted through the emancipatory clause",
+    "file_path": "coo/memos/2026-04-20-01.md"
+  },
+  {
+    "id": "2026-04-12-01",
+    "date": "2026-04-12",
+    "title": "Mem0 SOP adopted; entity model and encoding schema defined; clean-slate migration executed",
+    "status": "active",
+    "supersedes": "MEMO 2026-04-11-17 (informal scope rule \"always pass user_id=ven and agent_id=coo\"); codifies MEMO 2026-04-11-15 Finding A standing guidance into SOP",
+    "supersedes_refs": [
+      "2026-04-11-15",
+      "2026-04-11-17"
+    ],
+    "superseded_by": [
+      "2026-04-21-01",
+      "2026-04-23-06"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Mem0 SOP adopted; entity model and encoding schema defined; clean-slate migration executed",
+    "file_path": "coo/memos/2026-04-12-01.md"
+  },
+  {
+    "id": "2026-04-11-20",
+    "date": "2026-04-11",
+    "title": "PROJ-pm-migration executed; flat-file tracker retired",
+    "status": "",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-22-09"
+    ],
+    "linked_issues": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "summary_one_line": "PROJ-pm-migration executed; flat-file tracker retired",
+    "file_path": "coo/memos/2026-04-11-20.md"
+  },
+  {
+    "id": "2026-04-11-19",
+    "date": "2026-04-11",
+    "title": "PROJ-bootstrap closed; Step 10 spend cap set at $200/mo; phase transition to post-bootstrap work",
+    "status": "active",
+    "supersedes": "none. Marks PROJ-bootstrap as `done` in the tracker; triggers the post-bootstrap phase transition.",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-28-3ca3"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "PROJ-bootstrap closed; Step 10 spend cap set at $200/mo; phase transition to post-bootstrap work",
+    "file_path": "coo/memos/2026-04-11-19.md"
+  },
+  {
+    "id": "2026-04-11-18",
+    "date": "2026-04-11",
+    "title": "Step 9 closed: Mem0 noise deleted; Web GitHub connector accepted as public-only; honest completion framing",
+    "status": "active",
+    "supersedes": "retires MEMO 2026-04-11-17's Phase 2 block (connector allowlist fix is rejected; the limitation is accepted as a standing constraint).",
+    "supersedes_refs": [
+      "2026-04-11-17"
+    ],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Step 9 closed: Mem0 noise deleted; Web GitHub connector accepted as public-only; honest completion framing",
+    "file_path": "coo/memos/2026-04-11-18.md"
+  },
+  {
+    "id": "2026-04-11-17",
+    "date": "2026-04-11",
+    "title": "Step 9 Web-leg verification: Phase 1 cleared via id-lookup; namespace fragmentation + Web GitHub connector allowlist gap",
+    "status": "active",
+    "supersedes": "none. Amends the Mem0 \"namespace confirmed correct\" line in MEMO 2026-04-11-15 with a more precise finding: the scheme is correct, the Code-side default is wrong, explicit override is required.",
+    "supersedes_refs": [
+      "2026-04-11-15"
+    ],
+    "superseded_by": [
+      "2026-04-11-18",
+      "2026-04-12-01"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Step 9 Web-leg verification: Phase 1 cleared via id-lookup; namespace fragmentation + Web GitHub connector allowlist gap",
+    "file_path": "coo/memos/2026-04-11-17.md"
+  },
+  {
+    "id": "2026-04-11-16",
+    "date": "2026-04-11",
+    "title": "Finding B resolved: Code-side GitHub MCP private-repo read + write verified end-to-end",
+    "status": "active",
+    "supersedes": "resolves Finding B in MEMO 2026-04-11-15. Does not amend -15 (frozen case-law); this memo is the successor state.",
+    "supersedes_refs": [
+      "2026-04-11-15"
+    ],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Finding B resolved: Code-side GitHub MCP private-repo read + write verified end-to-end",
+    "file_path": "coo/memos/2026-04-11-16.md"
+  },
+  {
+    "id": "2026-04-11-15",
+    "date": "2026-04-11",
+    "title": "Step 8 shared `.mcp.json` committed; Step 9 Code-side legs verified; two findings",
+    "status": "active",
+    "supersedes": "none (amends MEMO 2026-04-11-11 on the GitHub MCP PAT scope claim; amends the mid-session confusion in this turn about the Mem0 namespace being \"aspirational\" — it is not, MEMO -10 was correct)",
+    "supersedes_refs": [
+      "2026-04-11-11"
+    ],
+    "superseded_by": [
+      "2026-04-11-16",
+      "2026-04-11-17",
+      "2026-04-12-01"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Step 8 shared `.mcp.json` committed; Step 9 Code-side legs verified; two findings",
+    "file_path": "coo/memos/2026-04-11-15.md"
+  },
+  {
+    "id": "2026-04-11-14",
+    "date": "2026-04-11",
+    "title": "VADE workspace relocated to `~/GitHub/VADE/`; iCloud-Documents identified as Tier-2 leak surface",
+    "status": "active",
+    "supersedes": "the workspace path references in MEMO 2026-04-11-04 (\"Cowork recognized as live third surface\") and MEMO 2026-04-11-11 (\"Cowork workspace path on Mac is now known: `~/Documents/Claude/Projects/Visual Agent Development Environment`\"). The Cowork *concept* survives; the *path* is replaced.",
+    "supersedes_refs": [
+      "2026-04-11-04",
+      "2026-04-11-11"
+    ],
+    "superseded_by": [
+      "2026-04-22-02"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "VADE workspace relocated to `~/GitHub/VADE/`; iCloud-Documents identified as Tier-2 leak surface",
+    "file_path": "coo/memos/2026-04-11-14.md"
+  },
+  {
+    "id": "2026-04-11-13",
+    "date": "2026-04-11",
+    "title": "claude.ai COO Project boots from linked GitHub files, not manual uploads",
+    "status": "active",
+    "supersedes": "the manual-upload-to-Project-knowledge instruction in the COO's first Step 7 operator checklist (drafted earlier this session, never executed)",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "claude.ai COO Project boots from linked GitHub files, not manual uploads",
+    "file_path": "coo/memos/2026-04-11-13.md"
+  },
+  {
+    "id": "2026-04-11-12",
+    "date": "2026-04-11",
+    "title": "Permission parity across surfaces; Step 7 pre-flight scan adopted",
+    "status": "active",
+    "supersedes": "none (closes the open downstream risk item flagged in MEMO 2026-04-11-08 about MCP connector pre-flight)",
+    "supersedes_refs": [
+      "2026-04-11-08"
+    ],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Permission parity across surfaces; Step 7 pre-flight scan adopted",
+    "file_path": "coo/memos/2026-04-11-12.md"
+  },
+  {
+    "id": "2026-04-11-11",
+    "date": "2026-04-11",
+    "title": "Step 6 complete: Mem0 OAuth, GitHub PAT fallback, workspace path recorded",
+    "status": "",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-11-14",
+      "2026-04-11-15",
+      "2026-04-22-01"
+    ],
+    "linked_issues": [
+      2267
+    ],
+    "summary_one_line": "Step 6 complete: Mem0 OAuth, GitHub PAT fallback, workspace path recorded",
+    "file_path": "coo/memos/2026-04-11-11.md"
+  },
+  {
+    "id": "2026-04-11-10",
+    "date": "2026-04-11",
+    "title": "Pivot Step 6 to hosted HTTP + OAuth for both MCPs",
+    "status": "",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      2267,
+      23365,
+      28332
+    ],
+    "summary_one_line": "Pivot Step 6 to hosted HTTP + OAuth for both MCPs",
+    "file_path": "coo/memos/2026-04-11-10.md"
+  },
+  {
+    "id": "2026-04-11-09",
+    "date": "2026-04-11",
+    "title": "Step 5 shipped; Step 6 runbook drafted with token-via-env discipline",
+    "status": "",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Step 5 shipped; Step 6 runbook drafted with token-via-env discipline",
+    "file_path": "coo/memos/2026-04-11-09.md"
+  },
+  {
+    "id": "2026-04-11-08",
+    "date": "2026-04-11",
+    "title": "Tiered governance publication: authority public, operational details private",
+    "status": "active",
+    "supersedes": "earlier same-session proposal to mirror charter.md / governance.md / preferences.md into the public `vade-governance` repo",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-11-12",
+      "2026-04-22-01"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Tiered governance publication: authority public, operational details private",
+    "file_path": "coo/memos/2026-04-11-08.md"
+  },
+  {
+    "id": "2026-04-11-07",
+    "date": "2026-04-11",
+    "title": "PAT generation deferred until non-shell GitHub access is required",
+    "status": "active",
+    "supersedes": "Bootstrap Plan §\"Step 4 — Generate a fine-grained GitHub PAT\" for the bootstrap phase only; the plan's post-MVP PAT/GitHub-App migration path is unchanged.",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-22-01"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "PAT generation deferred until non-shell GitHub access is required",
+    "file_path": "coo/memos/2026-04-11-07.md"
+  },
+  {
+    "id": "2026-04-11-06",
+    "date": "2026-04-11",
+    "title": "Org name canonicalized as `vade-app`; Step 2 complete",
+    "status": "active",
+    "supersedes": "all `vade-os` references in `VADE_Bootstrap_Plan__Persistent_AI_COO_Across_Every_Surface.md` and prior memos/tracker entries",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Org name canonicalized as `vade-app`; Step 2 complete",
+    "file_path": "coo/memos/2026-04-11-06.md"
+  },
+  {
+    "id": "2026-04-11-05",
+    "date": "2026-04-11",
+    "title": "File-revision delivery on Cowork: workspace folder + link",
+    "status": "active",
+    "supersedes": "partial revision of MEMO 2026-04-11-02 (delivery only)",
+    "supersedes_refs": [
+      "2026-04-11-02"
+    ],
+    "superseded_by": [
+      "2026-04-26-10"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "File-revision delivery on Cowork: workspace folder + link",
+    "file_path": "coo/memos/2026-04-11-05.md"
+  },
+  {
+    "id": "2026-04-11-04",
+    "date": "2026-04-11",
+    "title": "Cowork recognized as live third surface",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-11-14",
+      "2026-04-26-10"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Cowork recognized as live third surface",
+    "file_path": "coo/memos/2026-04-11-04.md"
+  },
+  {
+    "id": "2026-04-11-03",
+    "date": "2026-04-11",
+    "title": "Project tracker adopted; reading routine extended",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [],
+    "summary_one_line": "Project tracker adopted; reading routine extended",
+    "file_path": "coo/memos/2026-04-11-03.md"
+  },
+  {
+    "id": "2026-04-11-02",
+    "date": "2026-04-11",
+    "title": "Always output full revised files during bootstrap",
+    "status": "active (delivery mechanism revised by MEMO 2026-04-11-05)",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-11-05"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Always output full revised files during bootstrap",
+    "file_path": "coo/memos/2026-04-11-02.md"
+  },
+  {
+    "id": "2026-04-11-01",
+    "date": "2026-04-11",
+    "title": "Memo protocol adopted, case-law semantics",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [
+      "2026-04-24-03"
+    ],
+    "linked_issues": [],
+    "summary_one_line": "Memo protocol adopted, case-law semantics",
+    "file_path": "coo/memos/2026-04-11-01.md"
+  }
+]
