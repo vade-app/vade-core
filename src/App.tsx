@@ -205,6 +205,7 @@ export default function App() {
         persistenceKey="vade-main"
         shapeUtils={customShapeUtils}
         components={tldrawComponents}
+        licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
         onMount={(editor) => {
           bridgeRef.current.connect(editor)
         }}
