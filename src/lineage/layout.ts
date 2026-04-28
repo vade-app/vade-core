@@ -38,10 +38,10 @@ export interface Layout {
   bounds: { minX: number; minY: number; maxX: number; maxY: number }
 }
 
-export const NODE_W = 200
+export const NODE_W = 300
 export const NODE_H = 60
-const COL_W = 220
-const ROW_H = 80
+const COL_W = 340
+const ROW_H = 110
 const ORIGIN_DATE = '2026-04-11'
 
 const CB_BEARING_IDS = new Set([

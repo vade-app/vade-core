@@ -36,8 +36,11 @@ function nodeFill(n: LayoutNode): 'none' | 'semi' | 'solid' {
 }
 
 function nodeText(n: LayoutNode): string {
-  const title = n.memo.title.length > 32
-    ? n.memo.title.slice(0, 30) + '…'
+  // Two lines: ID on top, truncated title underneath. ~28 chars fits
+  // comfortably in a 300px box at font='mono' size='s'. Titles longer
+  // than 30 chars get sliced to 28 + ellipsis.
+  const title = n.memo.title.length > 30
+    ? n.memo.title.slice(0, 28) + '…'
     : n.memo.title
   return `${n.memo.id}\n${title}`
 }
@@ -49,7 +52,10 @@ export interface PopulateResult {
 
 export function populateLineage(editor: Editor, layout: Layout): PopulateResult {
   editor.run(() => {
-    // Nodes: one geo rectangle per memo.
+    // Nodes: one geo rectangle per memo. CB-bearing memos use a larger
+    // size for visual dominance (the size style affects stroke width
+    // and font size); they will grow taller via tldraw's growY when
+    // their content needs more room.
     for (const n of layout.nodes) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       editor.createShape<any>({
@@ -63,7 +69,7 @@ export function populateLineage(editor: Editor, layout: Layout): PopulateResult 
           color: nodeColor(n),
           fill: nodeFill(n),
           dash: 'solid',
-          size: 's',
+          size: n.isCB ? 'm' : 's',
           richText: toRichText(nodeText(n)),
           font: 'mono',
           align: 'middle',
