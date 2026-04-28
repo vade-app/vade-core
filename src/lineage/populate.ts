@@ -7,6 +7,22 @@ import type { Layout, LayoutNode } from './layout'
 // snapshot — the canvas is a picture of the lineage at one moment,
 // not a live editor.
 
+// Inlined `toRichText`: tldraw 3.x stores geo-shape text as a
+// ProseMirror-like doc tree (TLRichText), not a plain string. The
+// helper exists in @tldraw/tlschema but isn't re-exported by the
+// public `tldraw` facade, so we inline its 8-line body rather than
+// reach into a non-public surface. Mirrors
+// node_modules/@tldraw/tlschema/src/misc/TLRichText.ts.
+function toRichText(text: string): unknown {
+  const lines = text.split('\n')
+  const content = lines.map((line) =>
+    line
+      ? { type: 'paragraph', content: [{ type: 'text', text: line }] }
+      : { type: 'paragraph' },
+  )
+  return { type: 'doc', content }
+}
+
 function nodeColor(n: LayoutNode): 'black' | 'grey' | 'green' {
   if (n.isCB) return 'black'
   if (n.isFrontier) return 'green'
@@ -48,7 +64,7 @@ export function populateLineage(editor: Editor, layout: Layout): PopulateResult 
           fill: nodeFill(n),
           dash: 'solid',
           size: 's',
-          text: nodeText(n),
+          richText: toRichText(nodeText(n)),
           font: 'mono',
           align: 'middle',
           verticalAlign: 'middle',
