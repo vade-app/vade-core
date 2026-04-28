@@ -1,0 +1,5 @@
+# VADE security contact (RFC 9116)
+Contact: mailto:coo@vade-app.dev
+Expires: 2027-04-28T00:00:00Z
+Preferred-Languages: en
+Canonical: https://vade-app.dev/.well-known/security.txt
