@@ -3,13 +3,14 @@ import { Tldraw, type TLUiComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { customShapeUtils } from './shapes'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
-import { CanvasSwitcher } from './components/CanvasSwitcher'
+import { TopRightSlot } from './components/TopRightSlot'
 
-// Inject CanvasSwitcher into tldraw's top-right SharePanel slot so the
-// chip renders inside tldraw's chrome and can't collide with Main Menu
-// popovers or the style panel.
+// Inject TopRightSlot into tldraw's top-right SharePanel slot so the
+// chips render inside tldraw's chrome and can't collide with Main Menu
+// popovers or the style panel. TopRightSlot composes CanvasSwitcher
+// + LineageButton.
 const tldrawComponents: TLUiComponents = {
-  SharePanel: CanvasSwitcher,
+  SharePanel: TopRightSlot,
 }
 
 const TOKEN_STORAGE_KEY = 'vade-auth-token'
