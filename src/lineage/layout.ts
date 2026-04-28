@@ -16,6 +16,14 @@ export interface MemoEntry {
   file_path: string
 }
 
+export type Topic =
+  | 'memory'      // Mem0, memo-protocol, memo-pointer, episodic
+  | 'identity'    // CB-*, OG-*, subject-of-project, mind-kind, society
+  | 'substrate'   // cloud, bootstrap, hooks, integrity-check, OS-image
+  | 'governance'  // committee, quorum, tier, attribution, briefing
+  | 'tooling'     // skills, slash commands, MCP, agents, taxonomy
+  | 'operations'  // catch-all
+
 export interface LayoutNode {
   memo: MemoEntry
   x: number
@@ -24,6 +32,7 @@ export interface LayoutNode {
   height: number
   isCB: boolean
   isFrontier: boolean
+  topic: Topic
 }
 
 export interface LayoutEdge {
@@ -49,6 +58,30 @@ const CB_BEARING_IDS = new Set([
   '2026-04-26-15', // CB-007 + CB-008 mind-kind, symbiosis
   '2026-04-27-03', // CB-009 pattern-discourse autonomy
 ])
+
+// Keyword-based topic classifier. Order matters — earlier rules win.
+// Driven by case-insensitive substring match against memo title.
+// Governance comes before memory so "Memo protocol …" hits governance
+// (more specific) rather than the bare "memo" memory rule.
+function classifyTopic(title: string): Topic {
+  const t = title.toLowerCase()
+  if (/(\bcb-|\bog-|subject|mind-kind|society of selves|symbiosis|^identity|patterns?-discourse|are we stressed)/.test(t)) {
+    return 'identity'
+  }
+  if (/(committee|quorum|attribution|briefing|\btier\b|memo protocol|memo citation|memo-claim|memo shape|f4|night's watch|weekly watch|pr-watch|publication|governance|publishable)/.test(t)) {
+    return 'governance'
+  }
+  if (/(mem0|\bmemo\b|episodic|pointer|sop-mem)/.test(t)) {
+    return 'memory'
+  }
+  if (/(cloud|bootstrap|hook|integrity|setup script|os image|sandbox|cli setup|workspace path|claude code identity|spend cap|cloud sandbox|cf-|cloudflare|secret)/.test(t)) {
+    return 'substrate'
+  }
+  if (/(skill|mcp|slash|agent|taxonom|playwright|tools|tldraw|canvas|adoption|github)/.test(t)) {
+    return 'tooling'
+  }
+  return 'operations'
+}
 
 function dayIndex(date: string): number {
   const a = Date.parse(`${date}T00:00:00Z`)
@@ -79,6 +112,7 @@ export function computeLayout(memos: MemoEntry[]): Layout {
         height: NODE_H,
         isCB: CB_BEARING_IDS.has(m.id),
         isFrontier: m.superseded_by.length === 0,
+        topic: classifyTopic(m.title),
       }
       nodes.push(node)
       byId.set(m.id, node)

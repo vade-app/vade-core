@@ -1,18 +1,18 @@
-import type { Editor } from 'tldraw'
-import type { Layout, LayoutNode } from './layout'
+import { createShapeId, type Editor, type TLShapeId } from 'tldraw'
+import type { Layout, LayoutNode, Topic } from './layout'
 
-// Render a Layout into the editor as plain `geo` rectangles + `arrow`
-// shapes. No bindings: arrows use absolute relative coordinates, so
-// they don't track when nodes move. Acceptable for a generated
-// snapshot — the canvas is a picture of the lineage at one moment,
-// not a live editor.
+// Render a Layout into the editor as `geo` rectangles + `arrow`
+// shapes connected by tldraw bindings (so arrows snap to shape edges
+// and follow if a node moves). Each rectangle carries a `url` prop
+// pointing at the memo's GitHub blob URL — clicking the link icon
+// opens the memo source. Color encodes topic; fill + size encode
+// state (CB / frontier / superseded).
 
 // Inlined `toRichText`: tldraw 3.x stores geo-shape text as a
 // ProseMirror-like doc tree (TLRichText), not a plain string. The
 // helper exists in @tldraw/tlschema but isn't re-exported by the
 // public `tldraw` facade, so we inline its 8-line body rather than
-// reach into a non-public surface. Mirrors
-// node_modules/@tldraw/tlschema/src/misc/TLRichText.ts.
+// reach into a non-public surface.
 function toRichText(text: string): unknown {
   const lines = text.split('\n')
   const content = lines.map((line) =>
@@ -23,10 +23,17 @@ function toRichText(text: string): unknown {
   return { type: 'doc', content }
 }
 
-function nodeColor(n: LayoutNode): 'black' | 'grey' | 'green' {
-  if (n.isCB) return 'black'
-  if (n.isFrontier) return 'green'
-  return 'grey'
+const TOPIC_COLOR: Record<Topic, string> = {
+  memory:     'blue',
+  identity:   'violet',
+  substrate:  'orange',
+  governance: 'red',
+  tooling:    'green',
+  operations: 'grey',
+}
+
+function nodeColor(n: LayoutNode): string {
+  return TOPIC_COLOR[n.topic]
 }
 
 function nodeFill(n: LayoutNode): 'none' | 'semi' | 'solid' {
@@ -37,12 +44,15 @@ function nodeFill(n: LayoutNode): 'none' | 'semi' | 'solid' {
 
 function nodeText(n: LayoutNode): string {
   // Two lines: ID on top, truncated title underneath. ~28 chars fits
-  // comfortably in a 300px box at font='mono' size='s'. Titles longer
-  // than 30 chars get sliced to 28 + ellipsis.
+  // comfortably in a 300px box at font='mono' size='s'.
   const title = n.memo.title.length > 30
     ? n.memo.title.slice(0, 28) + '…'
     : n.memo.title
   return `${n.memo.id}\n${title}`
+}
+
+function memoUrl(filePath: string): string {
+  return `https://github.com/vade-app/vade-coo-memory/blob/main/${filePath}`
 }
 
 export interface PopulateResult {
@@ -51,14 +61,21 @@ export interface PopulateResult {
 }
 
 export function populateLineage(editor: Editor, layout: Layout): PopulateResult {
+  // Pre-allocate stable IDs for every node so we can reference them
+  // from arrow bindings within the same transaction.
+  const shapeIdByMemo = new Map<string, TLShapeId>()
+  for (const n of layout.nodes) {
+    shapeIdByMemo.set(n.memo.id, createShapeId())
+  }
+
   editor.run(() => {
-    // Nodes: one geo rectangle per memo. CB-bearing memos use a larger
-    // size for visual dominance (the size style affects stroke width
-    // and font size); they will grow taller via tldraw's growY when
-    // their content needs more room.
+    // Nodes: one geo rectangle per memo. CB-bearing memos use size='l'
+    // to physically dominate the timeline. URL prop links the shape to
+    // the memo's GitHub blob URL — click the link icon on the shape.
     for (const n of layout.nodes) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       editor.createShape<any>({
+        id: shapeIdByMemo.get(n.memo.id),
         type: 'geo',
         x: n.x,
         y: n.y,
@@ -69,7 +86,8 @@ export function populateLineage(editor: Editor, layout: Layout): PopulateResult 
           color: nodeColor(n),
           fill: nodeFill(n),
           dash: 'solid',
-          size: n.isCB ? 'm' : 's',
+          size: n.isCB ? 'l' : 's',
+          url: memoUrl(n.memo.file_path),
           richText: toRichText(nodeText(n)),
           font: 'mono',
           align: 'middle',
@@ -78,20 +96,26 @@ export function populateLineage(editor: Editor, layout: Layout): PopulateResult 
       })
     }
 
-    // Edges: one arrow per supersession ref. Child → parent (citation
-    // direction). Arrow shape sits at child's center; start at (0,0),
-    // end at the parent center delta. Center-to-center; arrowheads
-    // will dip into rectangle interiors slightly. Fine.
+    // Edges: one arrow per supersession ref, plus two bindings
+    // attaching its terminals to the child (start) and parent (end)
+    // shapes. tldraw auto-routes between shape edges from the
+    // normalized anchor.
+    const bindings: unknown[] = []
     for (const e of layout.edges) {
       const child = layout.byId.get(e.fromId)
       const parent = layout.byId.get(e.toId)
-      if (!child || !parent) continue
+      const childShapeId = shapeIdByMemo.get(e.fromId)
+      const parentShapeId = shapeIdByMemo.get(e.toId)
+      if (!child || !parent || !childShapeId || !parentShapeId) continue
+
+      const arrowId = createShapeId()
       const cx = child.x + child.width / 2
       const cy = child.y + child.height / 2
       const px = parent.x + parent.width / 2
       const py = parent.y + parent.height / 2
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       editor.createShape<any>({
+        id: arrowId,
         type: 'arrow',
         x: cx,
         y: cy,
@@ -106,6 +130,36 @@ export function populateLineage(editor: Editor, layout: Layout): PopulateResult 
           bend: 0,
         },
       })
+
+      bindings.push(
+        {
+          type: 'arrow',
+          fromId: arrowId,
+          toId: childShapeId,
+          props: {
+            terminal: 'start',
+            normalizedAnchor: { x: 0.5, y: 0.5 },
+            isPrecise: false,
+            isExact: false,
+          },
+        },
+        {
+          type: 'arrow',
+          fromId: arrowId,
+          toId: parentShapeId,
+          props: {
+            terminal: 'end',
+            normalizedAnchor: { x: 0.5, y: 0.5 },
+            isPrecise: false,
+            isExact: false,
+          },
+        },
+      )
+    }
+
+    if (bindings.length) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.createBindings(bindings as any)
     }
   })
 
