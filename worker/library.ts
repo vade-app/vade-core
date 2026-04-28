@@ -61,6 +61,37 @@ function canvasKey(slug: string): string {
   return `canvases/${slug}/snapshot.tldr`
 }
 
+// Per-isolate cache of the parsed OPERATOR_TOKENS JSON. Keyed off the raw
+// env value so a secret rotation (which spawns a new isolate with a fresh
+// env) naturally invalidates without explicit reset. The parse cost is
+// invisible at single-operator scale today; the cache becomes load-bearing
+// if/when OPERATOR_TOKENS migrates to Secrets Store, where each access
+// flips from sync `env.X` to async `await env.X.get()`.
+let operatorTokensCache: {
+  raw: string
+  tokens: readonly string[]
+} | null = null
+
+function getOperatorTokens(env: Env): readonly string[] {
+  const raw = env.OPERATOR_TOKENS
+  if (!raw) return []
+  if (operatorTokensCache?.raw === raw) return operatorTokensCache.tokens
+  try {
+    const parsed = JSON.parse(raw) as { operator?: unknown; agents?: unknown }
+    const operator = Array.isArray(parsed.operator) ? parsed.operator : []
+    const agents = Array.isArray(parsed.agents) ? parsed.agents : []
+    const tokens = [...operator, ...agents].filter(
+      (t): t is string => typeof t === 'string',
+    )
+    operatorTokensCache = { raw, tokens }
+    return tokens
+  } catch (err) {
+    console.warn('OPERATOR_TOKENS is not valid JSON; ignoring', err)
+    operatorTokensCache = { raw, tokens: [] }
+    return []
+  }
+}
+
 // Accept LIBRARY_BEARER (service-to-service secret shared with Fly) OR any
 // token listed in OPERATOR_TOKENS.{operator,agents}[] (same JSON shape as
 // Fly's VADE_AUTH_TOKENS). The second path lets the SPA reach /library/*
@@ -75,21 +106,8 @@ function isAuthorized(req: Request, env: Env): boolean {
 
   if (env.LIBRARY_BEARER && token === env.LIBRARY_BEARER) return true
 
-  if (env.OPERATOR_TOKENS) {
-    try {
-      const parsed = JSON.parse(env.OPERATOR_TOKENS) as {
-        operator?: unknown
-        agents?: unknown
-      }
-      const operator = Array.isArray(parsed.operator) ? parsed.operator : []
-      const agents = Array.isArray(parsed.agents) ? parsed.agents : []
-      for (const t of [...operator, ...agents]) {
-        if (typeof t === 'string' && t === token) return true
-      }
-    } catch (err) {
-      // Malformed JSON: log once per request and treat as absent rather than 500.
-      console.warn('OPERATOR_TOKENS is not valid JSON; ignoring', err)
-    }
+  for (const t of getOperatorTokens(env)) {
+    if (t === token) return true
   }
 
   return false
