@@ -104,13 +104,17 @@ export function computeLayout(memos: MemoEntry[]): Layout {
     list.sort((a, b) => a.id.localeCompare(b.id))
     const x = dayIndex(date) * COL_W
     list.forEach((m, lane) => {
+      const isCB = CB_BEARING_IDS.has(m.id)
+      // CB-bearing memos render as ellipses (see populate.ts) and need
+      // ~25% more width than rectangles for the title to wrap inside
+      // the ellipse's inscribed text region rather than under it.
       const node: LayoutNode = {
         memo: m,
-        x,
+        x: isCB ? x - 40 : x,
         y: lane * ROW_H,
-        width: NODE_W,
+        width: isCB ? NODE_W + 80 : NODE_W,
         height: NODE_H,
-        isCB: CB_BEARING_IDS.has(m.id),
+        isCB,
         isFrontier: m.superseded_by.length === 0,
         topic: classifyTopic(m.title),
       }
