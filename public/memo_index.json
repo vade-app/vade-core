@@ -42,6 +42,20 @@
     "file_path": "coo/memos/2026-04-28-v62b.md"
   },
   {
+    "id": "2026-04-28-pwgt",
+    "date": "2026-04-28",
+    "title": "Playwright is available in the cloud sandbox; use it for visual feedback loops",
+    "status": "active",
+    "supersedes": "none",
+    "supersedes_refs": [],
+    "superseded_by": [],
+    "linked_issues": [
+      99
+    ],
+    "summary_one_line": "Playwright is available in the cloud sandbox; use it for visual feedback loops",
+    "file_path": "coo/memos/2026-04-28-pwgt.md"
+  },
+  {
     "id": "2026-04-28-7yi7",
     "date": "2026-04-28",
     "title": "Default Claude Code model for the COO harness: `opusplan` + `effortLevel: high`",
