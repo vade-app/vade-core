@@ -100,6 +100,10 @@ flow. See [docs/auth.md](docs/auth.md) for the from-scratch setup
 script, rotation, client wiring (SPA / Claude Code / Claude.ai), and
 threat model. That file is the source of truth.
 
+For a focused 5-minute setup of Claude Code against the hosted MCP
+endpoint (`https://mcp.vade-app.dev/sse`), see
+[docs/remote-mcp.md](docs/remote-mcp.md).
+
 ## Governance
 
 See [vade-governance](https://github.com/vade-app/vade-governance)
