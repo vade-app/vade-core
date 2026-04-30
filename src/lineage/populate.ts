@@ -42,7 +42,21 @@ function nodeFill(n: LayoutNode): 'none' | 'semi' | 'solid' {
   return 'none'
 }
 
+// CB-bearing memos render as ellipses (smaller inscribed text region
+// than the bounding rectangle), so they get a tighter title cap and
+// the leading "CB-NNN" tag substitutes for the date-ID line — the CB
+// number is the more informative anchor at the spine.
+const CB_LABEL: Record<string, string> = {
+  '2026-04-24-09': 'CB-006 ✦ society-of-selves',
+  '2026-04-26-15': 'CB-007/008 ✦ mind-kind, symbiosis',
+  '2026-04-27-03': 'CB-009 ✦ pattern-discourse',
+}
+
 function nodeText(n: LayoutNode): string {
+  if (n.isCB) {
+    const label = CB_LABEL[n.memo.id] ?? `CB ✦ ${n.memo.id}`
+    return label
+  }
   // Two lines: ID on top, truncated title underneath. ~28 chars fits
   // comfortably in a 300px box at font='mono' size='s'.
   const title = n.memo.title.length > 30
@@ -80,7 +94,7 @@ export function populateLineage(editor: Editor, layout: Layout): PopulateResult 
         x: n.x,
         y: n.y,
         props: {
-          geo: 'rectangle',
+          geo: n.isCB ? 'ellipse' : 'rectangle',
           w: n.width,
           h: n.height,
           color: nodeColor(n),
