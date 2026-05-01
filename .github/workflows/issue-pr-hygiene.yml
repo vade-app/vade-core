@@ -62,11 +62,43 @@ jobs:
             const sameRepoRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+#\d+\b/i;
             const crossRepoRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+vade-app\/[a-z0-9-]+#\d+\b/i;
             const brokenFormRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+vade-(coo-memory|runtime|core|governance|agent-logs)#\d+\b/i;
+            // Comma-list form: Closes #1, #2, #3 — only the first ref auto-closes.
+            const commaListRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+(?:#\d+|vade-app\/[a-z0-9-]+#\d+)\s*,\s*(?:#\d+|vade-app\/[a-z0-9-]+#\d+)/i;
 
             const titleHasKeyword = sameRepoRe.test(title) || crossRepoRe.test(title);
             const bodyHasKeyword = sameRepoRe.test(body) || crossRepoRe.test(body);
             const titleHasBrokenForm = brokenFormRe.test(title);
             const bodyHasBrokenForm = brokenFormRe.test(body);
+            const hasCommaList = commaListRe.test(title) || commaListRe.test(body);
+
+            // Comma-list bug — keyword IS present but only first ref auto-closes.
+            if ((titleHasKeyword || bodyHasKeyword) && hasCommaList) {
+              const marker = '<!-- issue-pr-hygiene/b-comma -->';
+              const commaBody = `${marker}\n\n` +
+                `### Issue / PR hygiene — advisory (Pattern B: comma-list closing form)\n\n` +
+                `Detected \`Closes #N, #M, ...\` form. GitHub's parser only auto-closes the **first** issue; ` +
+                `subsequent refs stay open silently. Use one \`Closes\` keyword per issue:\n\n` +
+                `    Closes vade-app/<repo>#N\n    Closes vade-app/<repo>#M\n\n` +
+                `See \`coo/operations/issue-pr-hygiene.md\` §"Closing-keyword discipline" (in vade-app/vade-coo-memory).\n\n` +
+                `*This is advisory; the check does not block merge. Apply label \`hygiene:exempt\` to suppress on this PR.*`;
+              const cResp = await github.rest.issues.listComments({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: pr.number, per_page: 100,
+              });
+              const existing = cResp.data.find(c => c.body && c.body.includes(marker) && c.user.type === 'Bot');
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  comment_id: existing.id, body: commaBody,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: pr.number, body: commaBody,
+                });
+              }
+              core.warning(`Pattern B comma-list form detected; advisory comment posted.`);
+            }
 
             if (titleHasKeyword || bodyHasKeyword) {
               core.info(`Pattern B passed`);
