@@ -4,6 +4,7 @@ import 'tldraw/tldraw.css'
 import { customShapeUtils } from './shapes'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
 import { TopRightSlot } from './components/TopRightSlot'
+import { createVadeAssetStore } from './assets/vade-asset-store'
 
 // Inject TopRightSlot into tldraw's top-right SharePanel slot so the
 // chips render inside tldraw's chrome and can't collide with Main Menu
@@ -175,6 +176,11 @@ export default function App() {
   const bridgeRef = useRef(bridge)
   bridgeRef.current = bridge
 
+  // Asset store is per-mount: image bytes go through /library/assets and
+  // are addressed by sha256 in the snapshot, so canvases round-trip across
+  // devices instead of dangling at the source device's local IndexedDB.
+  const assetStore = useMemo(() => createVadeAssetStore(), [])
+
   if (requiresAuth && !token) {
     return (
       <TokenGate
@@ -206,6 +212,7 @@ export default function App() {
         persistenceKey="vade-main"
         shapeUtils={customShapeUtils}
         components={tldrawComponents}
+        assets={assetStore}
         licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
         onMount={(editor) => {
           bridgeRef.current.connect(editor)
