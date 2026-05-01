@@ -62,11 +62,43 @@ jobs:
             const sameRepoRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+#\d+\b/i;
             const crossRepoRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+vade-app\/[a-z0-9-]+#\d+\b/i;
             const brokenFormRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+vade-(coo-memory|runtime|core|governance|agent-logs)#\d+\b/i;
+            // Comma-list form: Closes #1, #2, #3 — only the first ref auto-closes.
+            const commaListRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+(?:#\d+|vade-app\/[a-z0-9-]+#\d+)\s*,\s*(?:#\d+|vade-app\/[a-z0-9-]+#\d+)/i;
 
             const titleHasKeyword = sameRepoRe.test(title) || crossRepoRe.test(title);
             const bodyHasKeyword = sameRepoRe.test(body) || crossRepoRe.test(body);
             const titleHasBrokenForm = brokenFormRe.test(title);
             const bodyHasBrokenForm = brokenFormRe.test(body);
+            const hasCommaList = commaListRe.test(title) || commaListRe.test(body);
+
+            // Comma-list bug — keyword IS present but only first ref auto-closes.
+            if ((titleHasKeyword || bodyHasKeyword) && hasCommaList) {
+              const marker = '<!-- issue-pr-hygiene/b-comma -->';
+              const commaBody = `${marker}\n\n` +
+                `### Issue / PR hygiene — advisory (Pattern B: comma-list closing form)\n\n` +
+                `Detected \`Closes #N, #M, ...\` form. GitHub's parser only auto-closes the **first** issue; ` +
+                `subsequent refs stay open silently. Use one \`Closes\` keyword per issue:\n\n` +
+                `    Closes vade-app/<repo>#N\n    Closes vade-app/<repo>#M\n\n` +
+                `See \`coo/operations/issue-pr-hygiene.md\` §"Closing-keyword discipline" (in vade-app/vade-coo-memory).\n\n` +
+                `*This is advisory; the check does not block merge. Apply label \`hygiene:exempt\` to suppress on this PR.*`;
+              const cResp = await github.rest.issues.listComments({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: pr.number, per_page: 100,
+              });
+              const existing = cResp.data.find(c => c.body && c.body.includes(marker) && c.user.type === 'Bot');
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  comment_id: existing.id, body: commaBody,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: pr.number, body: commaBody,
+                });
+              }
+              core.warning(`Pattern B comma-list form detected; advisory comment posted.`);
+            }
 
             if (titleHasKeyword || bodyHasKeyword) {
               core.info(`Pattern B passed`);
@@ -265,13 +297,18 @@ jobs:
             const issue = context.payload.issue;
             const issueNumber = issue.number;
 
+            // subIssues is the canonical native parent/child API (post-2024
+            // Issues v2). Distinct from trackedIssues, which only reflects
+            // markdown `- [ ] #N` task-list connections. See
+            // vade-coo-memory/coo/operations/issue-pr-hygiene.md §"GraphQL
+            // gotchas" for the distinction.
             let result;
             try {
               result = await github.graphql(`
                 query($owner: String!, $repo: String!, $number: Int!) {
                   repository(owner: $owner, name: $repo) {
                     issue(number: $number) {
-                      trackedIssues(first: 1) {
+                      subIssues(first: 1) {
                         totalCount
                       }
                     }
@@ -283,13 +320,13 @@ jobs:
                 number: issueNumber,
               });
             } catch (err) {
-              core.warning(`GraphQL trackedIssues query failed: ${err.message}. Skipping advisory.`);
+              core.warning(`GraphQL subIssues query failed: ${err.message}. Skipping advisory.`);
               return;
             }
 
-            const trackedCount = result?.repository?.issue?.trackedIssues?.totalCount ?? 0;
-            if (trackedCount > 0) {
-              core.info(`Pattern A passed: trackedIssues count = ${trackedCount}`);
+            const subCount = result?.repository?.issue?.subIssues?.totalCount ?? 0;
+            if (subCount > 0) {
+              core.info(`Pattern A passed: subIssues count = ${subCount}`);
               return;
             }
 
@@ -307,7 +344,7 @@ jobs:
             const commentBody = `${marker}\n\n` +
               `### Issue hygiene — advisory (Pattern A: sub-issue linkage)\n\n` +
               `This issue carries \`type:epic\` but has no native sub-issues linked ` +
-              `(\`trackedIssues\` count = 0). Markdown \`#N\` checklists are insufficient — ` +
+              `(\`subIssues\` count = 0). Markdown \`#N\` checklists are insufficient — ` +
               `they're invisible to GraphQL queries and the project board's tracker UI.\n\n` +
               `Add sub-issues via the GitHub UI's "Add sub-issue" button on this issue, ` +
               `or via the GraphQL \`addSubIssue\` mutation.\n\n` +
