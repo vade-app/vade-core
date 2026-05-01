@@ -2,11 +2,14 @@ import type { TLAsset, TLAssetStore } from 'tldraw'
 import { fetchAssetBlob, uploadAsset } from '../lib/assets'
 
 // Custom asset URL scheme that round-trips through canvas snapshots.
-// `props.src` carries `vade-asset:<sha256>` — a stable, content-addressed
+// `props.src` carries `asset:vade-<sha256>` — a stable, content-addressed
 // reference. resolve() turns that into a fetchable blob URL on demand.
 // Foreign URLs (default tldraw bookmarks, http(s) thumbnails) pass through
-// untouched.
-const SCHEME = 'vade-asset:'
+// untouched. The `asset:` scheme is one of tldraw's allowlisted srcUrl
+// protocols ({http:, https:, data:, asset:} per @tldraw/validate); we
+// sub-namespace under it with `vade-` so our records are distinguishable
+// from legacy / default-store ones.
+const SCHEME = 'asset:vade-'
 
 function parseHash(src: string | null | undefined): string | null {
   if (!src || !src.startsWith(SCHEME)) return null
