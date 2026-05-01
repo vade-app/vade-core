@@ -1,0 +1,80 @@
+name: Epic
+description: A parent issue that tracks multiple implementable child issues.
+title: "Epic: <short description>"
+labels: ["type:epic", "readiness:needs-breakdown"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Epic creation
+
+        Epics organize multi-issue work. After creating this issue, use the
+        GitHub UI's **"Add sub-issue"** button on this issue to formally link
+        each child issue (or use the GraphQL `addSubIssue` mutation).
+
+        Native sub-issue linkage is **required** for `type:epic` issues per
+        [`coo/operations/issue-pr-hygiene.md`](https://github.com/vade-app/vade-coo-memory/blob/main/coo/operations/issue-pr-hygiene.md)
+        + [`coo/label_taxonomy.md`](https://github.com/vade-app/vade-coo-memory/blob/main/coo/label_taxonomy.md) §6 —
+        markdown checklists of `#N` references in the epic body are insufficient
+        because they're invisible to GraphQL queries and the project board's
+        tracker UI.
+
+        The hygiene workflow will emit an advisory comment if no native
+        sub-issues are linked once you label this issue `type:epic`.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One-paragraph description of what this epic is about and what shipping it looks like.
+    validations:
+      required: true
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success criteria
+      description: How we'll know this epic is done. Specific and falsifiable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: sub-issues
+    attributes:
+      label: Sub-issues (use the "Add sub-issue" button)
+      description: |
+        After creating this epic, click "Add sub-issue" on this issue's right-side
+        panel to formally link each child. Use this textarea ONLY for a working
+        scratchpad of sub-issue candidates BEFORE they become real sub-issues.
+        Native sub-issues are the source-of-truth.
+      placeholder: |
+        Working scratch — replace with native sub-issue links once filed:
+          - [ ] Stream 1: <description>
+          - [ ] Stream 2: <description>
+    validations:
+      required: false
+
+  - type: textarea
+    id: cross-repo
+    attributes:
+      label: Cross-repo dependencies
+      description: |
+        Any issues / PRs in other vade-app repos this epic depends on. Use full
+        form `vade-app/<repo>#N` for cross-repo references (NEVER bare `#N` —
+        that autolinks to the wrong issue).
+      placeholder: |
+        - vade-app/vade-coo-memory#NNN — describe dependency
+        - vade-app/vade-core#NNN — describe dependency
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: |
+        Background, prior memos, related epics. Use hyphenated MEMO autolink
+        form (`MEMO-YYYY-MM-DD-<suffix>`) and dash form for non-issue IDs
+        (`quorum-N`, `briefing-N`, `instance-N`).
+    validations:
+      required: false

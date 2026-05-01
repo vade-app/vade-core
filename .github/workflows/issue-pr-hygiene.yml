@@ -1,0 +1,335 @@
+name: Issue / PR hygiene
+
+# Enforces the four issue/PR hygiene patterns documented in
+# vade-app/vade-coo-memory: coo/operations/issue-pr-hygiene.md
+#
+#   A — type:epic issues use GitHub's native sub-issue API (advisory)
+#   B — PRs that resolve issues include a closing keyword     (advisory in this repo)
+#   C — cross-repo refs use vade-app/<repo>#N form            (advisory)
+#   D — non-issue IDs use dash form (no #N)                   (advisory)
+#
+# Pure regex/GraphQL via actions/github-script@v7. No LLM call.
+#
+# Pattern-B is ADVISORY in this repo. Promotion to BLOCKING is governed
+# by coo/adoption_tracker.md betterment cadence (≥14 days clean).
+#
+# Exempt-class detection (Pattern-B) skips:
+#   - dependabot, claude[bot]
+#
+# Authority + audit: vade-app/vade-coo-memory: coo/audits/2026-05-01_issue-pr-hygiene/synthesis.md
+# Canonical doc:  vade-app/vade-coo-memory: coo/operations/issue-pr-hygiene.md
+# Rollout briefing: vade-app/vade-coo-memory: coo/briefings/014-issue-pr-hygiene-rollout.md
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+  checks: write
+
+concurrency:
+  group: hygiene-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  closing-keywords:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for closing keywords
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            const title = pr.title || '';
+            const author = pr.user.login;
+
+            // Author-based exempts (universal)
+            const exemptAuthors = ['dependabot[bot]', 'claude[bot]'];
+            if (exemptAuthors.includes(author)) {
+              core.info(`Exempt: author=${author}`);
+              return;
+            }
+
+            // Closing-keyword regexes
+            const sameRepoRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+#\d+\b/i;
+            const crossRepoRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+vade-app\/[a-z0-9-]+#\d+\b/i;
+            const brokenFormRe = /\b(clos(?:e|es|ed|ing)|fix(?:es|ed|ing)?|resolv(?:e|es|ed|ing))\s+vade-(coo-memory|runtime|core|governance|agent-logs)#\d+\b/i;
+
+            const titleHasKeyword = sameRepoRe.test(title) || crossRepoRe.test(title);
+            const bodyHasKeyword = sameRepoRe.test(body) || crossRepoRe.test(body);
+            const titleHasBrokenForm = brokenFormRe.test(title);
+            const bodyHasBrokenForm = brokenFormRe.test(body);
+
+            if (titleHasKeyword || bodyHasKeyword) {
+              core.info(`Pattern B passed`);
+              return;
+            }
+
+            if (/^closes:\s*n\/a\b/im.test(body) || /\bn\/a\s*—\s*no issue resolved\b/i.test(body)) {
+              core.info(`Pattern B passed (explicit "Closes: n/a")`);
+              return;
+            }
+
+            const reasons = [];
+            if (titleHasBrokenForm || bodyHasBrokenForm) {
+              reasons.push(
+                `Detected broken closing form \`Closes <reponame>#N\` ` +
+                `(no \`vade-app/\` prefix). This **autolinks but does NOT auto-close** the issue. ` +
+                `Use \`Closes #N\` for same-repo or \`Closes vade-app/<repo>#N\` for cross-repo.`
+              );
+            } else {
+              reasons.push(
+                `No closing keyword found in PR title or body. ` +
+                `If this PR resolves an issue, add \`Closes #N\` (same-repo) ` +
+                `or \`Closes vade-app/<repo>#N\` (cross-repo). ` +
+                `If no issue is resolved, add a body line: \`Closes: n/a\`.`
+              );
+            }
+
+            const summary = reasons.join('\n\n');
+
+            // ADVISORY: post comment, do not fail the check.
+            const marker = '<!-- issue-pr-hygiene/b -->';
+            const commentsResp = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+            const existing = commentsResp.data.find(c =>
+              c.body && c.body.includes(marker) && c.user.type === 'Bot'
+            );
+
+            const commentBody = `${marker}\n\n` +
+              `### Issue / PR hygiene — advisory (Pattern B: closing keywords)\n\n` +
+              `${summary}\n\n` +
+              `See \`coo/operations/issue-pr-hygiene.md\` §"Closing-keyword discipline" ` +
+              `(in vade-app/vade-coo-memory).\n\n` +
+              `*This is advisory; the check does not block merge. ` +
+              `Apply label \`hygiene:exempt\` to suppress on this PR.*`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+              core.info(`Updated existing advisory comment ${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: commentBody,
+              });
+              core.info(`Posted new advisory comment`);
+            }
+            core.warning(`Pattern B (closing keywords) — advisory: ${summary}`);
+
+  cross-repo-and-collision-refs:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lint cross-repo + collision-prone references
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            const title = pr.title || '';
+            const repo = context.repo.repo;
+
+            // Per-repo allowlist for known-grandfathered Pattern-D items.
+            // Empty in this repo per briefing-014.
+            const grandfatheredItems = new Set([
+              // Add by audit evidence; vade-app/vade-coo-memory: coo/operations/issue-pr-hygiene.md
+              // §"Failure modes — grandfathered items" tracks the rationale.
+            ]);
+            if (grandfatheredItems.has(pr.number)) {
+              core.info(`Skipped: PR #${pr.number} on Pattern-D grandfather list`);
+            }
+
+            const advisories = [];
+
+            // Pattern C: cross-repo bare #N (host repo "vade-core" excluded from cues)
+            const crossRepoCues = /(vade-(?:coo-memory|runtime|governance|agent-logs)(?!#))[^\n]{0,80}#\d+/g;
+            const cMatches = [...body.matchAll(crossRepoCues), ...title.matchAll(crossRepoCues)];
+            if (cMatches.length > 0) {
+              advisories.push(
+                `**Pattern C — cross-repo references**\n\n` +
+                `Detected ${cMatches.length} reference(s) where a vade-* repo is named ` +
+                `near a bare \`#N\`. Bare \`#N\` resolves to the host repo (${repo}); ` +
+                `use \`vade-app/<repo>#N\` for cross-repo. ` +
+                `Examples found:\n\n` +
+                cMatches.slice(0, 5).map(m => `  - \`${m[0]}\``).join('\n')
+              );
+            }
+
+            const listInheritanceRe = /vade-app\/[a-z0-9-]+#\d+\s*,\s*#\d+/g;
+            const listMatches = [...body.matchAll(listInheritanceRe), ...title.matchAll(listInheritanceRe)];
+            if (listMatches.length > 0) {
+              advisories.push(
+                `**Pattern C — list-inheritance**\n\n` +
+                `Detected \`vade-app/<repo>#N, #M\` patterns. The prefix scopes only ` +
+                `the first \`#N\`; subsequent \`#M\` autolink to ${repo}. ` +
+                `Repeat the prefix per item: \`vade-app/<repo>#N, vade-app/<repo>#M\`.\n\n` +
+                listMatches.slice(0, 3).map(m => `  - \`${m[0]}\``).join('\n')
+              );
+            }
+
+            if (!grandfatheredItems.has(pr.number)) {
+              const collisionTerms = /\b(quorum|instance|briefing|memo|stage|phase|finding|oq|audit|committee|persona|agent|chunk|round|track|step|tier|band|mechanism|hypothesis)\s+#\d+\b/gi;
+              const enumeratedIds = /\b(F\d+|Q\d+|A\d+|G\d+)\s+#\d+\b/g;
+              const stripped = body.replace(/^[-*]\s*\[[ xX]\]\s+.*$/gm, '');
+
+              const dMatches = [
+                ...stripped.matchAll(collisionTerms),
+                ...stripped.matchAll(enumeratedIds),
+                ...title.matchAll(collisionTerms),
+                ...title.matchAll(enumeratedIds),
+              ];
+
+              if (dMatches.length > 0) {
+                advisories.push(
+                  `**Pattern D — \`#num\` for non-issue IDs**\n\n` +
+                  `Detected ${dMatches.length} reference(s) using \`<term> #N\` notation ` +
+                  `where \`#N\` autolinks to an unrelated GitHub issue/PR. ` +
+                  `Use dash form: \`quorum-1\`, \`instance-N\`, \`briefing-014\`, etc. ` +
+                  `Examples found:\n\n` +
+                  dMatches.slice(0, 5).map(m => `  - \`${m[0]}\``).join('\n') +
+                  `\n\nSee \`coo/operations/issue-pr-hygiene.md\` §"Notation rules" ` +
+                  `(in vade-app/vade-coo-memory).`
+                );
+              }
+            }
+
+            if (advisories.length === 0) {
+              core.info(`Patterns C + D passed.`);
+              return;
+            }
+
+            const marker = '<!-- issue-pr-hygiene/c-d -->';
+            const commentsResp = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+            const existing = commentsResp.data.find(c =>
+              c.body && c.body.includes(marker) && c.user.type === 'Bot'
+            );
+
+            const commentBody = `${marker}\n\n` +
+              `### Issue / PR hygiene — advisory (Patterns C + D)\n\n` +
+              advisories.join('\n\n---\n\n') +
+              `\n\n*This is advisory; the check does not block merge. ` +
+              `Apply label \`hygiene:exempt\` to suppress on this PR.*`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+              core.info(`Updated existing advisory comment ${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: commentBody,
+              });
+              core.info(`Posted new advisory comment`);
+            }
+
+  sub-issue-linkage:
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'type:epic')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check sub-issue linkage on type:epic
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const issueNumber = issue.number;
+
+            let result;
+            try {
+              result = await github.graphql(`
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $number) {
+                      trackedIssues(first: 1) {
+                        totalCount
+                      }
+                    }
+                  }
+                }
+              `, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                number: issueNumber,
+              });
+            } catch (err) {
+              core.warning(`GraphQL trackedIssues query failed: ${err.message}. Skipping advisory.`);
+              return;
+            }
+
+            const trackedCount = result?.repository?.issue?.trackedIssues?.totalCount ?? 0;
+            if (trackedCount > 0) {
+              core.info(`Pattern A passed: trackedIssues count = ${trackedCount}`);
+              return;
+            }
+
+            const marker = '<!-- issue-pr-hygiene/a -->';
+            const commentsResp = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const existing = commentsResp.data.find(c =>
+              c.body && c.body.includes(marker) && c.user.type === 'Bot'
+            );
+
+            const commentBody = `${marker}\n\n` +
+              `### Issue hygiene — advisory (Pattern A: sub-issue linkage)\n\n` +
+              `This issue carries \`type:epic\` but has no native sub-issues linked ` +
+              `(\`trackedIssues\` count = 0). Markdown \`#N\` checklists are insufficient — ` +
+              `they're invisible to GraphQL queries and the project board's tracker UI.\n\n` +
+              `Add sub-issues via the GitHub UI's "Add sub-issue" button on this issue, ` +
+              `or via the GraphQL \`addSubIssue\` mutation.\n\n` +
+              `See \`coo/operations/issue-pr-hygiene.md\` §"Sub-issue linkage" + ` +
+              `\`coo/label_taxonomy.md\` §6 (in vade-app/vade-coo-memory).\n\n` +
+              `*This is advisory; the check does not block merge. ` +
+              `Apply label \`hygiene:exempt\` to suppress on this issue.*`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+              core.info(`Updated existing advisory comment ${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: commentBody,
+              });
+              core.info(`Posted new advisory comment`);
+            }
