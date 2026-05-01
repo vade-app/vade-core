@@ -61,6 +61,19 @@ function canvasKey(slug: string): string {
   return `canvases/${slug}/snapshot.tldr`
 }
 
+function assetKey(hash: string): string {
+  return `assets/${hash}`
+}
+
+const ASSET_HASH_RE = /^[0-9a-f]{64}$/
+
+async function sha256Hex(bytes: ArrayBuffer): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
 // Per-isolate cache of the parsed OPERATOR_TOKENS JSON. Keyed off the raw
 // env value so a secret rotation (which spawns a new isolate with a fresh
 // env) naturally invalidates without explicit reset. The parse cost is
@@ -150,6 +163,15 @@ export async function handleLibrary(req: Request, env: Env, url: URL): Promise<R
       return text('Method not allowed', 405)
     }
 
+    if (resource === 'assets') {
+      if (!slug) {
+        if (req.method === 'POST') return putAsset(req, env)
+        return text('Method not allowed', 405)
+      }
+      if (req.method === 'GET') return getAsset(env, slug)
+      return text('Method not allowed', 405)
+    }
+
     if (resource === 'search' && req.method === 'GET') {
       return search(env, url.searchParams.get('q') ?? '')
     }
@@ -221,6 +243,39 @@ async function deleteCanvas(env: Env, slug: string): Promise<Response> {
   await env.LIBRARY_R2.delete(canvasKey(slug))
   await env.vade_library.prepare('DELETE FROM canvases WHERE slug = ?').bind(slug).run()
   return new Response(null, { status: 204 })
+}
+
+// Content-addressed binary assets (uploaded images, etc.) referenced from
+// canvas snapshots. Hash is the SHA-256 of the bytes, computed server-side
+// so a misbehaving client can't poison the store under a wrong key. The
+// content-type is preserved on the R2 object's httpMetadata so GETs serve
+// the correct MIME without a separate D1 row. See src/assets/vade-asset-store.ts
+// for the matching client side.
+async function putAsset(req: Request, env: Env): Promise<Response> {
+  const contentType = req.headers.get('Content-Type') ?? 'application/octet-stream'
+  const bytes = await req.arrayBuffer()
+  if (bytes.byteLength === 0) return text('empty body', 400)
+  const hash = await sha256Hex(bytes)
+  const key = assetKey(hash)
+  const existing = await env.LIBRARY_R2.head(key)
+  if (!existing) {
+    await env.LIBRARY_R2.put(key, bytes, {
+      httpMetadata: { contentType },
+    })
+  }
+  return json({ hash })
+}
+
+async function getAsset(env: Env, hash: string): Promise<Response> {
+  if (!ASSET_HASH_RE.test(hash)) return text('Not found', 404)
+  const obj = await env.LIBRARY_R2.get(assetKey(hash))
+  if (!obj) return text('Not found', 404)
+  const headers = new Headers()
+  headers.set('Content-Type', obj.httpMetadata?.contentType ?? 'application/octet-stream')
+  // Content-addressed: bytes are immutable for a given hash, so cache
+  // aggressively. Browsers and CF's edge cache will both honor this.
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  return new Response(obj.body, { headers })
 }
 
 async function listEntities(env: Env): Promise<Response> {
