@@ -91,12 +91,15 @@ export function AppShell({ assetStore, licenseKey, components, onMount }: AppShe
     [onMount],
   )
 
-  // Per-canvas persistenceKey isolates IndexedDB session state
-  // (camera, selection, current page) per active canvas. Switching
-  // active forces a Tldraw remount via the key change, which is
-  // also what loads the just-restored / just-branched document
-  // cleanly — no stale shapes leak across canvases.
-  const persistenceKey = active ? `vade-canvas-${active.slug}` : 'vade-canvas-main'
+  // Single persistenceKey across canvases. Per-canvas persistenceKey
+  // looked attractive (isolated camera/zoom per canvas) but conflicts
+  // with R2-backed canvas switching: loadStoreSnapshot applies the
+  // R2 snapshot to the in-memory tldraw, then setActive flips
+  // persistenceKey, then Tldraw remounts and hydrates from the new
+  // (empty) IndexedDB key, blanking the just-loaded canvas. Stick
+  // with one bucket; loadStoreSnapshot is the single source of truth
+  // on canvas switch.
+  const persistenceKey = 'vade-main'
 
   const shellState = useMemo<ShellState>(
     () => ({
@@ -115,7 +118,7 @@ export function AppShell({ assetStore, licenseKey, components, onMount }: AppShe
       <div style={{ position: 'fixed', inset: 0 }}>
         <CanvasDropTarget editor={editor}>
           <Tldraw
-            key={`${registryVersion}:${persistenceKey}`}
+            key={registryVersion}
             persistenceKey={persistenceKey}
             shapeUtils={customShapeUtils}
             assets={assetStore}
