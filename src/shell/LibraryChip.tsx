@@ -1,8 +1,9 @@
 import { useShell } from './ShellContext'
 
 // Toggle chip for the library panel. Carries active canvas name +
-// dirty dot for at-a-glance status. Matches the DftButton/Lineage/
-// Portrait chip style so it integrates into tldraw's SharePanel.
+// dirty dot for at-a-glance status. Renders inside tldraw's
+// SharePanel slot via TopRightSlot. Style is the inline placeholder
+// pending the theme-tokens pass at #180.
 export function LibraryChip() {
   const { library, setLibrary, activeName, dirty } = useShell()
   const open = library === 'open'

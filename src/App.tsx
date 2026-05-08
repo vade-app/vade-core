@@ -8,8 +8,8 @@ import { AppShell } from './shell/AppShell'
 
 // Inject TopRightSlot into tldraw's top-right SharePanel slot so the
 // chips render inside tldraw's chrome and can't collide with Main Menu
-// popovers or the style panel. TopRightSlot composes CanvasSwitcher
-// + LineageButton.
+// popovers or the style panel. TopRightSlot composes the Catalog and
+// Library toggles.
 const tldrawComponents: TLUiComponents = {
   SharePanel: TopRightSlot,
 }
