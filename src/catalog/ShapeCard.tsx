@@ -60,9 +60,9 @@ export function ShapeCard({
   const baseStyle: CSSProperties = {
     padding: layout === 'tile' ? 14 : 8,
     borderRadius: 8,
-    border: '1px solid rgba(69, 71, 90, 0.6)',
-    background: 'rgba(30, 30, 46, 0.85)',
-    color: '#cdd6f4',
+    border: '1px solid var(--tl-color-divider)',
+    background: 'var(--tl-color-panel-overlay)',
+    color: 'var(--tl-color-text)',
     cursor: 'grab',
     fontFamily: fontSans,
     fontSize: layout === 'tile' ? size.lg : size.md,
@@ -93,7 +93,7 @@ export function ShapeCard({
     >
       <div style={{ fontWeight: 600 }}>{name}</div>
       {category && (
-        <div style={{ fontSize: size.xs, color: '#7f849c' }}>{category}</div>
+        <div style={{ fontSize: size.xs, color: 'var(--tl-color-text-3)' }}>{category}</div>
       )}
       {tags && tags.length > 0 && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
@@ -104,8 +104,8 @@ export function ShapeCard({
                 fontSize: size.xs,
                 padding: '1px 5px',
                 borderRadius: 4,
-                background: 'rgba(137, 180, 250, 0.15)',
-                color: '#89b4fa',
+                background: 'var(--tl-color-muted-1)',
+                color: 'var(--tl-color-selected)',
               }}
             >
               {t}

@@ -59,8 +59,8 @@ export function FullPage({ onClose }: FullPageProps) {
         position: 'fixed',
         inset: 0,
         zIndex: 1500,
-        background: 'rgba(17, 17, 27, 0.95)',
-        color: '#cdd6f4',
+        background: 'var(--tl-color-panel-overlay)',
+        color: 'var(--tl-color-text)',
         display: 'flex',
         flexDirection: 'column',
         fontFamily: fontSans,
@@ -69,14 +69,14 @@ export function FullPage({ onClose }: FullPageProps) {
       <header
         style={{
           padding: '12px 18px',
-          borderBottom: '1px solid rgba(69, 71, 90, 0.6)',
+          borderBottom: '1px solid var(--tl-color-divider)',
           display: 'flex',
           alignItems: 'center',
           gap: 12,
         }}
       >
         <div style={{ fontSize: size.xl, fontWeight: 600 }}>Shape Catalog</div>
-        <div style={{ fontSize: size.md, color: '#7f849c' }}>
+        <div style={{ fontSize: size.md, color: 'var(--tl-color-text-3)' }}>
           {Object.values(shapeMetas).length} shapes · {entities.length} entities · drag onto canvas
         </div>
         <div style={{ flex: 1 }} />
@@ -87,7 +87,7 @@ export function FullPage({ onClose }: FullPageProps) {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#cdd6f4',
+            color: 'var(--tl-color-text)',
             cursor: 'pointer',
             fontSize: 18 /* display */,
             lineHeight: 1,
@@ -162,7 +162,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         style={{
           fontSize: size.sm,
           letterSpacing: 1.2,
-          color: '#7f849c',
+          color: 'var(--tl-color-text-3)',
           marginBottom: 10,
         }}
       >
@@ -180,7 +180,7 @@ function CategoryBlock({ title, children }: { title: string; children: React.Rea
         style={{
           fontSize: size.lg,
           fontWeight: 600,
-          color: '#cdd6f4',
+          color: 'var(--tl-color-text)',
           margin: '0 0 8px',
           textTransform: 'capitalize',
         }}

@@ -62,9 +62,9 @@ function SelectedShapePanelInner({ editor }: { editor: Editor }) {
         right: 12,
         width: 240,
         zIndex: 1500,
-        background: '#1e1e2e',
-        color: '#cdd6f4',
-        border: '1px solid rgba(69, 71, 90, 0.6)',
+        background: 'var(--tl-color-panel)',
+        color: 'var(--tl-color-text)',
+        border: '1px solid var(--tl-color-divider)',
         borderRadius: 10,
         padding: 12,
         boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
@@ -76,14 +76,14 @@ function SelectedShapePanelInner({ editor }: { editor: Editor }) {
           style={{
             fontSize: size.sm,
             letterSpacing: 1.2,
-            color: '#7f849c',
+            color: 'var(--tl-color-text-3)',
             textTransform: 'uppercase',
           }}
         >
           {meta.name}
         </div>
         {meta.description && (
-          <div style={{ fontSize: size.sm, color: '#6c7086', marginTop: 2 }}>
+          <div style={{ fontSize: size.sm, color: 'var(--tl-color-text-3)', marginTop: 2 }}>
             {meta.description}
           </div>
         )}

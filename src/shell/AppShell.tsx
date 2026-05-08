@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Tldraw, type Editor, type TLAssetStore, type TLUiComponents } from 'tldraw'
+import { Tldraw, type Editor, type TLAssetStore, type TLUiComponents, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { customShapeUtils, version as registryVersion } from '../shapes'
 import { Sidebar } from '../catalog/Sidebar'
@@ -120,10 +120,21 @@ export function AppShell({ assetStore, licenseKey, components, onMount }: AppShe
   // SelectedShapePanel via position:absolute. FullPage stays a
   // viewport-level overlay (sibling of the flex row) so it covers
   // panels too when active. (#183)
+  //
+  // Theme class on the wrapper propagates tldraw's --tl-color-*
+  // CSS custom properties to panels that aren't descendants of
+  // <Tldraw> (Sidebar, LibraryPanel, dialogs). Without this, the
+  // panels' var(--tl-color-*) references don't resolve and they
+  // fall back to defaults. tldraw applies its own theme class
+  // inside its container, so the canvas itself still respects
+  // tldraw's mode toggle. (#180)
+  const isDark = useValue('isDark', () => editor?.user.getIsDarkMode() ?? false, [editor])
+  const themeClass = isDark ? 'tl-theme__dark' : 'tl-theme__light'
+
   return (
     <ShellContext.Provider value={shellState}>
       <>
-        <div style={{ position: 'fixed', inset: 0, display: 'flex' }}>
+        <div className={themeClass} style={{ position: 'fixed', inset: 0, display: 'flex' }}>
           {catalog === 'sidebar' && (
             <Sidebar
               onClose={() => setCatalog('closed')}

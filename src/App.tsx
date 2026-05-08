@@ -69,7 +69,7 @@ function ConnectionIndicator({ bridge, onClearToken }: { bridge: VadeBridge; onC
         gap: 6,
         padding: '4px 10px',
         borderRadius: 12,
-        background: 'rgba(30, 30, 46, 0.85)',
+        background: 'var(--tl-color-panel-overlay)',
         color: colors[status],
         fontSize: size.sm,
         fontFamily: fontMono,
