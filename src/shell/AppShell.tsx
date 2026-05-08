@@ -113,41 +113,52 @@ export function AppShell({ assetStore, licenseKey, components, onMount }: AppShe
     [catalog, library, active, dirty],
   )
 
+  // Flex shell so panels push canvas + chrome aside instead of
+  // overlapping. Sidebar and LibraryPanel are flex children;
+  // canvas + SelectedShapePanel + (fullpage cover) live in a
+  // flex:1 column whose position:relative anchors the floating
+  // SelectedShapePanel via position:absolute. FullPage stays a
+  // viewport-level overlay (sibling of the flex row) so it covers
+  // panels too when active. (#183)
   return (
     <ShellContext.Provider value={shellState}>
-      <div style={{ position: 'fixed', inset: 0 }}>
-        <CanvasDropTarget editor={editor}>
-          <Tldraw
-            key={registryVersion}
-            persistenceKey={persistenceKey}
-            shapeUtils={customShapeUtils}
-            assets={assetStore}
-            {...(components ? { components } : {})}
-            {...(licenseKey ? { licenseKey } : {})}
-            onMount={handleMount}
-          />
-        </CanvasDropTarget>
+      <>
+        <div style={{ position: 'fixed', inset: 0, display: 'flex' }}>
+          {catalog === 'sidebar' && (
+            <Sidebar
+              onClose={() => setCatalog('closed')}
+              onExpand={() => setCatalog('fullpage')}
+            />
+          )}
 
-        {catalog === 'sidebar' && (
-          <Sidebar
-            onClose={() => setCatalog('closed')}
-            onExpand={() => setCatalog('fullpage')}
-          />
-        )}
+          <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+            <CanvasDropTarget editor={editor}>
+              <Tldraw
+                key={registryVersion}
+                persistenceKey={persistenceKey}
+                shapeUtils={customShapeUtils}
+                assets={assetStore}
+                {...(components ? { components } : {})}
+                {...(licenseKey ? { licenseKey } : {})}
+                onMount={handleMount}
+              />
+            </CanvasDropTarget>
+
+            <SelectedShapePanel editor={editor} />
+          </div>
+
+          {library === 'open' && editor && (
+            <LibraryPanel
+              editor={editor}
+              active={active}
+              onActiveChange={(next) => setActive(next)}
+              onClose={() => setLibrary('closed')}
+            />
+          )}
+        </div>
 
         {catalog === 'fullpage' && <FullPage onClose={() => setCatalog('sidebar')} />}
-
-        {library === 'open' && editor && (
-          <LibraryPanel
-            editor={editor}
-            active={active}
-            onActiveChange={(next) => setActive(next)}
-            onClose={() => setLibrary('closed')}
-          />
-        )}
-
-        <SelectedShapePanel editor={editor} />
-      </div>
+      </>
     </ShellContext.Provider>
   )
 }

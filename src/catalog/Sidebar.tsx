@@ -72,12 +72,8 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
   return (
     <aside
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        bottom: 0,
         width: 220,
-        zIndex: 1400,
+        flexShrink: 0,
         background: '#1e1e2e',
         color: '#cdd6f4',
         borderRight: '1px solid rgba(69, 71, 90, 0.6)',
