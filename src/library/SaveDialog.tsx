@@ -56,10 +56,10 @@ export function SaveDialog({
         style={{
           minWidth: 320,
           padding: 16,
-          background: '#1e1e2e',
-          color: '#cdd6f4',
+          background: 'var(--tl-color-panel)',
+          color: 'var(--tl-color-text)',
           borderRadius: 12,
-          border: '1px solid rgba(69, 71, 90, 0.6)',
+          border: '1px solid var(--tl-color-divider)',
           boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
           fontFamily: fontSans,
         }}
@@ -79,9 +79,9 @@ export function SaveDialog({
           style={{
             width: '100%',
             padding: '6px 8px',
-            background: '#181825',
-            border: '1px solid rgba(69, 71, 90, 0.6)',
-            color: '#cdd6f4',
+            background: 'var(--tl-color-background)',
+            border: '1px solid var(--tl-color-divider)',
+            color: 'var(--tl-color-text)',
             borderRadius: 6,
             fontSize: size.lg,
           }}
@@ -94,9 +94,9 @@ export function SaveDialog({
             style={{
               padding: '5px 10px',
               borderRadius: 6,
-              border: '1px solid rgba(69, 71, 90, 0.6)',
+              border: '1px solid var(--tl-color-divider)',
               background: 'transparent',
-              color: '#cdd6f4',
+              color: 'var(--tl-color-text)',
               fontSize: size.md,
               cursor: busy ? 'default' : 'pointer',
             }}
@@ -110,9 +110,9 @@ export function SaveDialog({
             style={{
               padding: '5px 10px',
               borderRadius: 6,
-              border: '1px solid rgba(137, 180, 250, 0.6)',
-              background: 'rgba(137, 180, 250, 0.15)',
-              color: '#cdd6f4',
+              border: '1px solid var(--tl-color-selected)',
+              background: 'var(--tl-color-muted-1)',
+              color: 'var(--tl-color-text)',
               fontSize: size.md,
               cursor: busy ? 'default' : 'pointer',
             }}

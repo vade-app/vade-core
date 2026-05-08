@@ -75,9 +75,9 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
       style={{
         width: 220,
         flexShrink: 0,
-        background: '#1e1e2e',
-        color: '#cdd6f4',
-        borderRight: '1px solid rgba(69, 71, 90, 0.6)',
+        background: 'var(--tl-color-panel)',
+        color: 'var(--tl-color-text)',
+        borderRight: '1px solid var(--tl-color-divider)',
         display: 'flex',
         flexDirection: 'column',
         fontFamily: fontSans,
@@ -90,10 +90,10 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
           alignItems: 'center',
           gap: 6,
           padding: '10px 12px',
-          borderBottom: '1px solid rgba(69, 71, 90, 0.6)',
+          borderBottom: '1px solid var(--tl-color-divider)',
         }}
       >
-        <div style={{ flex: 1, fontSize: size.sm, letterSpacing: 1.2, color: '#7f849c' }}>
+        <div style={{ flex: 1, fontSize: size.sm, letterSpacing: 1.2, color: 'var(--tl-color-text-3)' }}>
           CATALOG
         </div>
         {onExpand && (
@@ -118,7 +118,7 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
         )}
       </header>
 
-      <div style={{ padding: '8px 10px', borderBottom: '1px solid rgba(69, 71, 90, 0.4)' }}>
+      <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--tl-color-divider)' }}>
         <input
           type="text"
           placeholder="Search shapes + entities…"
@@ -127,9 +127,9 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
           style={{
             width: '100%',
             padding: '5px 8px',
-            background: '#181825',
-            border: '1px solid rgba(69, 71, 90, 0.6)',
-            color: '#cdd6f4',
+            background: 'var(--tl-color-background)',
+            border: '1px solid var(--tl-color-divider)',
+            color: 'var(--tl-color-text)',
             borderRadius: 6,
             fontSize: size.md,
             boxSizing: 'border-box',
@@ -146,10 +146,10 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
                   fontSize: size.xs,
                   padding: '1px 6px',
                   borderRadius: 4,
-                  border: '1px solid rgba(137, 180, 250, 0.4)',
+                  border: '1px solid var(--tl-color-selected)',
                   background:
-                    activeTag === t ? 'rgba(137, 180, 250, 0.3)' : 'transparent',
-                  color: '#89b4fa',
+                    activeTag === t ? 'var(--tl-color-muted-1)' : 'transparent',
+                  color: 'var(--tl-color-selected)',
                   cursor: 'pointer',
                 }}
               >
@@ -226,7 +226,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
           padding: '0 12px 6px',
           fontSize: size.xs,
           letterSpacing: 1.2,
-          color: '#6c7086',
+          color: 'var(--tl-color-text-3)',
         }}
       >
         {title}
@@ -246,14 +246,14 @@ function List({ children }: { children: React.ReactNode }) {
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ padding: '4px 12px', fontSize: size.md, color: '#6c7086' }}>{children}</div>
+    <div style={{ padding: '4px 12px', fontSize: size.md, color: 'var(--tl-color-text-3)' }}>{children}</div>
   )
 }
 
 const iconButtonStyle = {
   background: 'transparent',
   border: 'none',
-  color: '#7f849c',
+  color: 'var(--tl-color-text-3)',
   cursor: 'pointer',
   fontSize: size.lg,
   lineHeight: 1,

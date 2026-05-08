@@ -120,10 +120,10 @@ function Row({
         alignItems: stack ? 'stretch' : 'center',
         gap: stack ? 4 : 8,
         fontSize: size.md,
-        color: '#cdd6f4',
+        color: 'var(--tl-color-text)',
       }}
     >
-      <span style={{ minWidth: stack ? 0 : 70, color: '#7f849c', fontSize: size.sm }}>
+      <span style={{ minWidth: stack ? 0 : 70, color: 'var(--tl-color-text-3)', fontSize: size.sm }}>
         {label}
       </span>
       {children}
@@ -134,9 +134,9 @@ function Row({
 const controlStyle: CSSProperties = {
   flex: 1,
   padding: '4px 6px',
-  background: '#181825',
-  border: '1px solid rgba(69, 71, 90, 0.6)',
-  color: '#cdd6f4',
+  background: 'var(--tl-color-background)',
+  border: '1px solid var(--tl-color-divider)',
+  color: 'var(--tl-color-text)',
   borderRadius: 4,
   fontSize: size.md,
   boxSizing: 'border-box',
