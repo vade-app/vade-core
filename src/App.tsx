@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Tldraw, type TLUiComponents } from 'tldraw'
+import { type TLUiComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { customShapeUtils, version as registryVersion } from './shapes'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
 import { TopRightSlot } from './components/TopRightSlot'
 import { createVadeAssetStore } from './assets/vade-asset-store'
+import { AppShell } from './shell/AppShell'
 
 // Inject TopRightSlot into tldraw's top-right SharePanel slot so the
 // chips render inside tldraw's chrome and can't collide with Main Menu
@@ -207,19 +207,16 @@ export default function App() {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0 }}>
-      <Tldraw
-        key={registryVersion}
-        persistenceKey="vade-main"
-        shapeUtils={customShapeUtils}
-        components={tldrawComponents}
-        assets={assetStore}
+    <>
+      <AppShell
+        assetStore={assetStore}
         licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
+        components={tldrawComponents}
         onMount={(editor) => {
           bridgeRef.current.connect(editor)
         }}
       />
       <ConnectionIndicator bridge={bridge} onClearToken={clearToken} />
-    </div>
+    </>
   )
 }
