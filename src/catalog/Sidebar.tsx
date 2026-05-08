@@ -75,7 +75,7 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
       style={{
         width: 220,
         flexShrink: 0,
-        background: 'var(--tl-color-panel)',
+        background: 'var(--tl-color-low)',
         color: 'var(--tl-color-text)',
         borderRight: '1px solid var(--tl-color-divider)',
         display: 'flex',

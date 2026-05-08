@@ -222,7 +222,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
       style={{
         width: 260,
         flexShrink: 0,
-        background: 'var(--tl-color-panel)',
+        background: 'var(--tl-color-low)',
         color: 'var(--tl-color-text)',
         borderLeft: '1px solid var(--tl-color-divider)',
         display: 'flex',

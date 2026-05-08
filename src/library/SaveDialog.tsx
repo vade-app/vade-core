@@ -56,7 +56,7 @@ export function SaveDialog({
         style={{
           minWidth: 320,
           padding: 16,
-          background: 'var(--tl-color-panel)',
+          background: 'var(--tl-color-low)',
           color: 'var(--tl-color-text)',
           borderRadius: 12,
           border: '1px solid var(--tl-color-divider)',
