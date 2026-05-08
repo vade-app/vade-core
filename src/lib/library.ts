@@ -9,6 +9,15 @@ export interface CanvasMeta {
   description: string
   created: string
   modified: string
+  parent_slug?: string
+  parent_snapshot?: string
+}
+
+export interface SnapshotMeta {
+  snapshot_id: string
+  canvas_slug: string
+  label: string
+  created: string
 }
 
 export class LibraryAuthError extends Error {
@@ -102,4 +111,59 @@ export async function deleteCanvas(slug: string): Promise<boolean> {
   if (res.status === 404) return false
   if (!res.ok) throw new LibraryError(await res.text(), res.status)
   return true
+}
+
+export async function listSnapshots(slug: string): Promise<SnapshotMeta[]> {
+  const res = await request(`/library/canvases/${encodeURIComponent(slug)}/snapshots`)
+  if (res.status === 404) return []
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as SnapshotMeta[]
+}
+
+export async function saveSnapshot(slug: string, label = ''): Promise<SnapshotMeta> {
+  const res = await request(`/library/canvases/${encodeURIComponent(slug)}/snapshots`, {
+    method: 'POST',
+    body: JSON.stringify({ label }),
+  })
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as SnapshotMeta
+}
+
+export async function deleteSnapshot(slug: string, snapshotId: string): Promise<boolean> {
+  const res = await request(
+    `/library/canvases/${encodeURIComponent(slug)}/snapshots/${encodeURIComponent(snapshotId)}`,
+    { method: 'DELETE' },
+  )
+  if (res.status === 404) return false
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return true
+}
+
+export async function restoreSnapshot(
+  slug: string,
+  snapshotId: string,
+): Promise<{ snapshot: unknown; meta: CanvasMeta } | null> {
+  const res = await request(`/library/canvases/${encodeURIComponent(slug)}/restore`, {
+    method: 'POST',
+    body: JSON.stringify({ snapshot_id: snapshotId }),
+  })
+  if (res.status === 404) return null
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as { snapshot: unknown; meta: CanvasMeta }
+}
+
+export async function branchCanvas(
+  parentSlug: string,
+  newName: string,
+  fromSnapshot?: string,
+): Promise<CanvasMeta> {
+  const res = await request(`/library/canvases/${encodeURIComponent(parentSlug)}/branch`, {
+    method: 'POST',
+    body: JSON.stringify({
+      name: newName,
+      ...(fromSnapshot ? { from_snapshot: fromSnapshot } : {}),
+    }),
+  })
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as CanvasMeta
 }

@@ -45,6 +45,72 @@ export function registerCanvasTools(server: McpServer, bridge: CanvasBridge) {
     return { content: [{ type: 'text' as const, text: JSON.stringify(canvases, null, 2) }] }
   })
 
+  server.registerTool('listEntities', {
+    description: 'List all saved entities (reusable shape groups) in the library.',
+  }, async () => {
+    const store = await getStore()
+    const entities = await store.listEntities()
+    if (entities.length === 0) {
+      return { content: [{ type: 'text' as const, text: 'No entities saved yet.' }] }
+    }
+    return { content: [{ type: 'text' as const, text: JSON.stringify(entities, null, 2) }] }
+  })
+
+  server.registerTool('saveSnapshot', {
+    description: 'Capture the current head of a saved canvas as a named snapshot in its history.',
+    inputSchema: {
+      canvasName: z.string().describe('Name of the canvas to snapshot'),
+      label: z.string().optional().describe('Optional label appended to the snapshot id'),
+    },
+  }, async ({ canvasName, label }) => {
+    const store = await getStore()
+    const meta = await store.saveSnapshot(canvasName, label)
+    return { content: [{ type: 'text' as const, text: `Saved snapshot of "${canvasName}"\n${JSON.stringify(meta, null, 2)}` }] }
+  })
+
+  server.registerTool('listSnapshots', {
+    description: 'List the named snapshots stored in a canvas\'s history, newest first.',
+    inputSchema: {
+      canvasName: z.string().describe('Name of the canvas'),
+    },
+  }, async ({ canvasName }) => {
+    const store = await getStore()
+    const snapshots = await store.listSnapshots(canvasName)
+    if (snapshots.length === 0) {
+      return { content: [{ type: 'text' as const, text: `No snapshots for canvas "${canvasName}".` }] }
+    }
+    return { content: [{ type: 'text' as const, text: JSON.stringify(snapshots, null, 2) }] }
+  })
+
+  server.registerTool('restoreSnapshot', {
+    description: 'Restore a canvas to a previously named snapshot. Replaces the head; the live canvas re-loads.',
+    inputSchema: {
+      canvasName: z.string().describe('Name of the canvas to restore'),
+      snapshotId: z.string().describe('Snapshot id from listSnapshots'),
+    },
+  }, async ({ canvasName, snapshotId }) => {
+    const store = await getStore()
+    const result = await store.restoreSnapshot(canvasName, snapshotId)
+    if (!result) {
+      return { content: [{ type: 'text' as const, text: `Snapshot "${snapshotId}" not found on "${canvasName}".` }] }
+    }
+    await bridge.send({ type: 'loadSnapshot', id: makeId(), snapshot: result.snapshot })
+    return { content: [{ type: 'text' as const, text: `Restored "${canvasName}" to snapshot "${snapshotId}"\n${JSON.stringify(result.meta, null, 2)}` }] }
+  })
+
+  server.registerTool('branchCanvas', {
+    description: 'Fork a canvas into a new canvas. Optionally branches from a named snapshot instead of the current head.',
+    inputSchema: {
+      parentName: z.string().describe('Name of the canvas to branch from'),
+      newName: z.string().describe('Name for the new branched canvas'),
+      fromSnapshot: z.string().optional().describe('Snapshot id to branch from (default: head)'),
+    },
+  }, async ({ parentName, newName, fromSnapshot }) => {
+    const store = await getStore()
+    const meta = await store.branchCanvas(parentName, newName, fromSnapshot)
+    return { content: [{ type: 'text' as const, text: `Branched "${parentName}" → "${newName}"\n${JSON.stringify(meta, null, 2)}` }] }
+  })
+
   server.registerTool('deleteCanvas', {
     description: 'Delete a saved canvas from the library by name.',
     inputSchema: {

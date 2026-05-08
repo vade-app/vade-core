@@ -1,8 +1,15 @@
-import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'fs'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync, rmSync, copyFileSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
-import type { CanvasMeta, EntityMeta, LibraryStore } from '../library.js'
+import type { CanvasMeta, EntityMeta, LibraryStore, SnapshotMeta } from '../library.js'
 import { slugify } from '../library.js'
+
+function generateSnapshotId(label: string | undefined): string {
+  const iso = new Date().toISOString().replace(/[:.]/g, '-')
+  if (!label) return iso
+  const slug = slugify(label)
+  return slug ? `${iso}-${slug}` : iso
+}
 
 export class FsLibraryStore implements LibraryStore {
   private readonly root: string
@@ -144,5 +151,105 @@ export class FsLibraryStore implements LibraryStore {
       e.description.toLowerCase().includes(q),
     )
     return { canvases, entities }
+  }
+
+  async saveSnapshot(canvasName: string, label?: string): Promise<SnapshotMeta> {
+    const slug = slugify(canvasName)
+    const dir = join(this.canvasesDir, slug)
+    const head = join(dir, 'snapshot.tldr')
+    if (!existsSync(head)) {
+      throw new Error(`Canvas "${canvasName}" has no head snapshot`)
+    }
+    const historyDir = join(dir, 'history')
+    mkdirSync(historyDir, { recursive: true })
+    const snapshotId = generateSnapshotId(label || undefined)
+    copyFileSync(head, join(historyDir, `${snapshotId}.tldr`))
+    const created = new Date().toISOString()
+
+    const indexPath = join(dir, 'history.json')
+    const index: SnapshotMeta[] = (() => {
+      try {
+        return JSON.parse(readFileSync(indexPath, 'utf-8')) as SnapshotMeta[]
+      } catch {
+        return []
+      }
+    })()
+    const meta: SnapshotMeta = {
+      snapshot_id: snapshotId,
+      canvas_slug: slug,
+      label: label ?? '',
+      created,
+    }
+    index.push(meta)
+    writeFileSync(indexPath, JSON.stringify(index, null, 2))
+    return meta
+  }
+
+  async listSnapshots(canvasName: string): Promise<SnapshotMeta[]> {
+    const slug = slugify(canvasName)
+    const indexPath = join(this.canvasesDir, slug, 'history.json')
+    if (!existsSync(indexPath)) return []
+    try {
+      const all = JSON.parse(readFileSync(indexPath, 'utf-8')) as SnapshotMeta[]
+      return all.sort((a, b) => (a.created < b.created ? 1 : -1))
+    } catch {
+      return []
+    }
+  }
+
+  async restoreSnapshot(
+    canvasName: string,
+    snapshotId: string,
+  ): Promise<{ snapshot: unknown; meta: CanvasMeta } | null> {
+    const slug = slugify(canvasName)
+    const dir = join(this.canvasesDir, slug)
+    const snapPath = join(dir, 'history', `${snapshotId}.tldr`)
+    if (!existsSync(snapPath)) return null
+    const head = join(dir, 'snapshot.tldr')
+    copyFileSync(snapPath, head)
+
+    const metaPath = join(dir, 'metadata.json')
+    if (!existsSync(metaPath)) return null
+    const meta = JSON.parse(readFileSync(metaPath, 'utf-8')) as CanvasMeta
+    meta.modified = new Date().toISOString()
+    writeFileSync(metaPath, JSON.stringify(meta, null, 2))
+
+    const snapshot = JSON.parse(readFileSync(head, 'utf-8'))
+    return { snapshot, meta }
+  }
+
+  async branchCanvas(
+    parentName: string,
+    newName: string,
+    fromSnapshot?: string,
+  ): Promise<CanvasMeta> {
+    const parentSlug = slugify(parentName)
+    const newSlug = slugify(newName)
+    if (!newSlug) throw new Error(`name produced empty slug`)
+    const parentDir = join(this.canvasesDir, parentSlug)
+    const newDir = join(this.canvasesDir, newSlug)
+    if (existsSync(newDir)) throw new Error(`Canvas "${newName}" already exists`)
+
+    const sourcePath = fromSnapshot
+      ? join(parentDir, 'history', `${fromSnapshot}.tldr`)
+      : join(parentDir, 'snapshot.tldr')
+    if (!existsSync(sourcePath)) {
+      throw new Error(fromSnapshot ? 'from_snapshot not found on parent' : 'parent has no head snapshot')
+    }
+
+    mkdirSync(newDir, { recursive: true })
+    copyFileSync(sourcePath, join(newDir, 'snapshot.tldr'))
+    const now = new Date().toISOString()
+    const meta: CanvasMeta = {
+      name: newName,
+      tags: [],
+      description: '',
+      created: now,
+      modified: now,
+      parent_slug: parentSlug,
+      ...(fromSnapshot ? { parent_snapshot: fromSnapshot } : {}),
+    }
+    writeFileSync(join(newDir, 'metadata.json'), JSON.stringify(meta, null, 2))
+    return meta
   }
 }
