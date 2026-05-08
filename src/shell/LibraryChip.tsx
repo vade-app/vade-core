@@ -1,4 +1,5 @@
 import { useShell } from './ShellContext'
+import { fontMono, size } from './typography'
 
 // Toggle chip for the library panel. Carries active canvas name +
 // dirty dot for at-a-glance status. Renders inside tldraw's
@@ -24,8 +25,8 @@ export function LibraryChip() {
         border: '1px solid var(--tl-color-divider)',
         background: open ? 'var(--tl-color-muted-1)' : 'var(--tl-color-panel-overlay)',
         color: 'var(--tl-color-text)',
-        fontFamily: 'ui-monospace, monospace',
-        fontSize: 11,
+        fontFamily: fontMono,
+        fontSize: size.sm,
         cursor: 'pointer',
         backdropFilter: 'blur(8px)',
       }}

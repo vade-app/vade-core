@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { z } from 'zod'
+import { fontMono, size } from '../shell/typography'
 
 interface ParamFormProps {
   schema: z.ZodObject<z.ZodRawShape>
@@ -81,7 +82,7 @@ export function ParamForm({ schema, value, onChange }: ParamFormProps) {
                   value={current}
                   onChange={(e) => onChange({ ...value, [key]: e.target.value })}
                   rows={Math.min(8, Math.max(3, current.split('\n').length + 1))}
-                  style={{ ...controlStyle, fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace', resize: 'vertical' }}
+                  style={{ ...controlStyle, fontFamily: fontMono, resize: 'vertical' }}
                 />
               ) : (
                 <input
@@ -118,11 +119,11 @@ function Row({
         flexDirection: stack ? 'column' : 'row',
         alignItems: stack ? 'stretch' : 'center',
         gap: stack ? 4 : 8,
-        fontSize: 12,
+        fontSize: size.md,
         color: '#cdd6f4',
       }}
     >
-      <span style={{ minWidth: stack ? 0 : 70, color: '#7f849c', fontSize: 11 }}>
+      <span style={{ minWidth: stack ? 0 : 70, color: '#7f849c', fontSize: size.sm }}>
         {label}
       </span>
       {children}
@@ -137,7 +138,7 @@ const controlStyle: CSSProperties = {
   border: '1px solid rgba(69, 71, 90, 0.6)',
   color: '#cdd6f4',
   borderRadius: 4,
-  fontSize: 12,
+  fontSize: size.md,
   boxSizing: 'border-box',
   minWidth: 0,
 }

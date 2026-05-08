@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type EntityMeta, LibraryAuthError, listEntities, slugify } from '../lib/library'
 import { metas as shapeMetas } from '../shapes/registry'
+import { fontSans, size } from '../shell/typography'
 import { ShapeCard } from './ShapeCard'
 
 interface FullPageProps {
@@ -62,7 +63,7 @@ export function FullPage({ onClose }: FullPageProps) {
         color: '#cdd6f4',
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily: fontSans,
       }}
     >
       <header
@@ -74,8 +75,8 @@ export function FullPage({ onClose }: FullPageProps) {
           gap: 12,
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 600 }}>Shape Catalog</div>
-        <div style={{ fontSize: 12, color: '#7f849c' }}>
+        <div style={{ fontSize: size.xl, fontWeight: 600 }}>Shape Catalog</div>
+        <div style={{ fontSize: size.md, color: '#7f849c' }}>
           {Object.values(shapeMetas).length} shapes · {entities.length} entities · drag onto canvas
         </div>
         <div style={{ flex: 1 }} />
@@ -88,7 +89,7 @@ export function FullPage({ onClose }: FullPageProps) {
             border: 'none',
             color: '#cdd6f4',
             cursor: 'pointer',
-            fontSize: 18,
+            fontSize: 18 /* display */,
             lineHeight: 1,
           }}
         >
@@ -102,7 +103,7 @@ export function FullPage({ onClose }: FullPageProps) {
             padding: '8px 18px',
             background: 'rgba(243, 139, 168, 0.12)',
             color: '#f38ba8',
-            fontSize: 12,
+            fontSize: size.md,
             borderBottom: '1px solid rgba(243, 139, 168, 0.3)',
           }}
         >
@@ -159,7 +160,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div style={{ marginBottom: 24 }}>
       <div
         style={{
-          fontSize: 11,
+          fontSize: size.sm,
           letterSpacing: 1.2,
           color: '#7f849c',
           marginBottom: 10,
@@ -177,7 +178,7 @@ function CategoryBlock({ title, children }: { title: string; children: React.Rea
     <div style={{ marginBottom: 18 }}>
       <h2
         style={{
-          fontSize: 13,
+          fontSize: size.lg,
           fontWeight: 600,
           color: '#cdd6f4',
           margin: '0 0 8px',

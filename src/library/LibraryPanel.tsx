@@ -13,6 +13,7 @@ import {
   saveSnapshot,
   slugify,
 } from '../lib/library'
+import { fontSans, size } from '../shell/typography'
 import { SaveDialog } from './SaveDialog'
 
 export interface ActiveCanvas {
@@ -226,8 +227,8 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
         borderLeft: '1px solid rgba(69, 71, 90, 0.6)',
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: 13,
+        fontFamily: fontSans,
+        fontSize: size.lg,
       }}
     >
       <header
@@ -239,7 +240,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
           justifyContent: 'space-between',
         }}
       >
-        <div style={{ fontSize: 11, letterSpacing: 1.2, color: '#7f849c' }}>LIBRARY</div>
+        <div style={{ fontSize: size.sm, letterSpacing: 1.2, color: '#7f849c' }}>LIBRARY</div>
         {onClose && (
           <button
             type="button"
@@ -250,7 +251,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
               border: 'none',
               color: '#7f849c',
               cursor: 'pointer',
-              fontSize: 16,
+              fontSize: 16 /* display */,
               lineHeight: 1,
             }}
           >
@@ -288,7 +289,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
             padding: '6px 10px',
             background: 'rgba(243, 139, 168, 0.12)',
             color: '#f38ba8',
-            fontSize: 12,
+            fontSize: size.md,
             borderBottom: '1px solid rgba(243, 139, 168, 0.3)',
           }}
         >
@@ -318,11 +319,11 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
                     border: 'none',
                     color: isActive ? '#89b4fa' : '#cdd6f4',
                     cursor: 'pointer',
-                    fontSize: 12,
+                    fontSize: size.md,
                   }}
                 >
                   <div style={{ fontWeight: isActive ? 600 : 400 }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: '#6c7086' }}>
+                  <div style={{ fontSize: size.sm, color: '#6c7086' }}>
                     {fmtTime(c.modified)}
                     {c.parent_slug && ` · from ${c.parent_slug}`}
                   </div>
@@ -345,7 +346,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
                     alignItems: 'center',
                     gap: 6,
                     padding: '4px 12px',
-                    fontSize: 12,
+                    fontSize: size.md,
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -358,7 +359,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
                     >
                       {s.label || '(no label)'}
                     </div>
-                    <div style={{ fontSize: 10, color: '#6c7086' }}>{fmtTime(s.created)}</div>
+                    <div style={{ fontSize: size.xs, color: '#6c7086' }}>{fmtTime(s.created)}</div>
                   </div>
                   <IconButton
                     title="Restore this snapshot"
@@ -405,7 +406,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <div
         style={{
           padding: '0 12px 6px',
-          fontSize: 10,
+          fontSize: size.xs,
           letterSpacing: 1.2,
           color: '#6c7086',
         }}
@@ -419,7 +420,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ padding: '4px 12px', fontSize: 12, color: '#6c7086' }}>{children}</div>
+    <div style={{ padding: '4px 12px', fontSize: size.md, color: '#6c7086' }}>{children}</div>
   )
 }
 
@@ -444,7 +445,7 @@ function ActionButton({
         border: '1px solid rgba(69, 71, 90, 0.6)',
         background: 'rgba(30, 30, 46, 0.85)',
         color: disabled ? '#6c7086' : '#cdd6f4',
-        fontSize: 12,
+        fontSize: size.md,
         cursor: disabled ? 'default' : 'pointer',
       }}
     >
@@ -474,7 +475,7 @@ function IconButton({
         border: '1px solid rgba(69, 71, 90, 0.4)',
         background: 'transparent',
         color: '#cdd6f4',
-        fontSize: 13,
+        fontSize: size.lg,
         cursor: 'pointer',
         display: 'inline-flex',
         alignItems: 'center',

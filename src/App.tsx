@@ -5,6 +5,7 @@ import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
 import { TopRightSlot } from './components/TopRightSlot'
 import { createVadeAssetStore } from './assets/vade-asset-store'
 import { AppShell } from './shell/AppShell'
+import { fontMono, size } from './shell/typography'
 
 // Inject TopRightSlot into tldraw's top-right SharePanel slot so the
 // chips render inside tldraw's chrome and can't collide with Main Menu
@@ -70,8 +71,8 @@ function ConnectionIndicator({ bridge, onClearToken }: { bridge: VadeBridge; onC
         borderRadius: 12,
         background: 'rgba(30, 30, 46, 0.85)',
         color: colors[status],
-        fontSize: 11,
-        fontFamily: 'ui-monospace, monospace',
+        fontSize: size.sm,
+        fontFamily: fontMono,
         pointerEvents: interactive ? 'auto' : 'none',
         cursor: interactive ? 'pointer' : 'default',
         backdropFilter: 'blur(8px)',
@@ -108,7 +109,7 @@ function TokenGate({ onSubmit }: { onSubmit: (token: string) => void }) {
         justifyContent: 'center',
         background: '#1e1e2e',
         color: '#cdd6f4',
-        fontFamily: 'ui-monospace, monospace',
+        fontFamily: fontMono,
         padding: 24,
       }}
     >
@@ -125,8 +126,8 @@ function TokenGate({ onSubmit }: { onSubmit: (token: string) => void }) {
           maxWidth: 420,
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 600 }}>VADE</div>
-        <label htmlFor="vade-token" style={{ fontSize: 12, color: '#a6adc8' }}>
+        <div style={{ fontSize: size.xl, fontWeight: 600 }}>VADE</div>
+        <label htmlFor="vade-token" style={{ fontSize: size.md, color: '#a6adc8' }}>
           Paste your operator token to continue
         </label>
         <input
@@ -143,8 +144,8 @@ function TokenGate({ onSubmit }: { onSubmit: (token: string) => void }) {
             border: '1px solid #45475a',
             background: '#181825',
             color: '#cdd6f4',
-            fontFamily: 'ui-monospace, monospace',
-            fontSize: 13,
+            fontFamily: fontMono,
+            fontSize: size.lg,
           }}
         />
         <button
@@ -157,7 +158,7 @@ function TokenGate({ onSubmit }: { onSubmit: (token: string) => void }) {
             background: trimmed ? '#89b4fa' : '#45475a',
             color: '#11111b',
             fontFamily: 'inherit',
-            fontSize: 13,
+            fontSize: size.lg,
             fontWeight: 600,
             cursor: trimmed ? 'pointer' : 'not-allowed',
           }}

@@ -1,4 +1,5 @@
 import { useShell } from './ShellContext'
+import { fontMono, size } from './typography'
 
 // Toggle chip for the catalog sidebar/fullpage. Renders inside
 // tldraw's SharePanel slot via TopRightSlot. Style is the inline
@@ -23,8 +24,8 @@ export function CatalogChip() {
         border: '1px solid var(--tl-color-divider)',
         background: open ? 'var(--tl-color-muted-1)' : 'var(--tl-color-panel-overlay)',
         color: 'var(--tl-color-text)',
-        fontFamily: 'ui-monospace, monospace',
-        fontSize: 11,
+        fontFamily: fontMono,
+        fontSize: size.sm,
         cursor: 'pointer',
         backdropFilter: 'blur(8px)',
       }}

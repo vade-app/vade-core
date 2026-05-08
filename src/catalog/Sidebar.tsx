@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type EntityMeta, LibraryAuthError, listEntities, slugify } from '../lib/library'
 import { metas as shapeMetas } from '../shapes/registry'
+import { fontSans, size } from '../shell/typography'
 import { ShapeCard } from './ShapeCard'
 
 interface SidebarProps {
@@ -79,8 +80,8 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
         borderRight: '1px solid rgba(69, 71, 90, 0.6)',
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: 13,
+        fontFamily: fontSans,
+        fontSize: size.lg,
       }}
     >
       <header
@@ -92,7 +93,7 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
           borderBottom: '1px solid rgba(69, 71, 90, 0.6)',
         }}
       >
-        <div style={{ flex: 1, fontSize: 11, letterSpacing: 1.2, color: '#7f849c' }}>
+        <div style={{ flex: 1, fontSize: size.sm, letterSpacing: 1.2, color: '#7f849c' }}>
           CATALOG
         </div>
         {onExpand && (
@@ -130,7 +131,7 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
             border: '1px solid rgba(69, 71, 90, 0.6)',
             color: '#cdd6f4',
             borderRadius: 6,
-            fontSize: 12,
+            fontSize: size.md,
             boxSizing: 'border-box',
           }}
         />
@@ -142,7 +143,7 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
                 type="button"
                 onClick={() => setActiveTag(activeTag === t ? null : t)}
                 style={{
-                  fontSize: 10,
+                  fontSize: size.xs,
                   padding: '1px 6px',
                   borderRadius: 4,
                   border: '1px solid rgba(137, 180, 250, 0.4)',
@@ -165,7 +166,7 @@ export function Sidebar({ onClose, onExpand }: SidebarProps) {
             padding: '6px 10px',
             background: 'rgba(243, 139, 168, 0.12)',
             color: '#f38ba8',
-            fontSize: 12,
+            fontSize: size.md,
             borderBottom: '1px solid rgba(243, 139, 168, 0.3)',
           }}
         >
@@ -223,7 +224,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <div
         style={{
           padding: '0 12px 6px',
-          fontSize: 10,
+          fontSize: size.xs,
           letterSpacing: 1.2,
           color: '#6c7086',
         }}
@@ -245,7 +246,7 @@ function List({ children }: { children: React.ReactNode }) {
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ padding: '4px 12px', fontSize: 12, color: '#6c7086' }}>{children}</div>
+    <div style={{ padding: '4px 12px', fontSize: size.md, color: '#6c7086' }}>{children}</div>
   )
 }
 
@@ -254,7 +255,7 @@ const iconButtonStyle = {
   border: 'none',
   color: '#7f849c',
   cursor: 'pointer',
-  fontSize: 13,
+  fontSize: size.lg,
   lineHeight: 1,
   padding: 2,
 } as const
