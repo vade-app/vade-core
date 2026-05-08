@@ -2,17 +2,21 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { type TLUiComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
+import { MainMenu } from './components/MainMenu'
 import { TopRightSlot } from './components/TopRightSlot'
 import { createVadeAssetStore } from './assets/vade-asset-store'
 import { AppShell } from './shell/AppShell'
+import { AuthContext } from './shell/AuthContext'
 import { fontMono, size } from './shell/typography'
 
 // Inject TopRightSlot into tldraw's top-right SharePanel slot so the
 // chips render inside tldraw's chrome and can't collide with Main Menu
 // popovers or the style panel. TopRightSlot composes the Catalog and
-// Library toggles.
+// Library toggles. MainMenu adds a Sign-out item to tldraw's default
+// menu (#186).
 const tldrawComponents: TLUiComponents = {
   SharePanel: TopRightSlot,
+  MainMenu,
 }
 
 const TOKEN_STORAGE_KEY = 'vade-auth-token'
@@ -208,7 +212,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <AuthContext.Provider value={{ signOut: clearToken }}>
       <AppShell
         assetStore={assetStore}
         licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
@@ -218,6 +222,6 @@ export default function App() {
         }}
       />
       <ConnectionIndicator bridge={bridge} onClearToken={clearToken} />
-    </>
+    </AuthContext.Provider>
   )
 }

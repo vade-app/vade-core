@@ -62,7 +62,7 @@ function SelectedShapePanelInner({ editor }: { editor: Editor }) {
         right: 12,
         width: 240,
         zIndex: 1500,
-        background: 'var(--tl-color-panel)',
+        background: 'var(--tl-color-low)',
         color: 'var(--tl-color-text)',
         border: '1px solid var(--tl-color-divider)',
         borderRadius: 10,
