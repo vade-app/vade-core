@@ -20,6 +20,17 @@ export interface SnapshotMeta {
   created: string
 }
 
+export interface EntityMeta {
+  name: string
+  tags: string[]
+  description: string
+}
+
+export interface SearchResults {
+  canvases: CanvasMeta[]
+  entities: EntityMeta[]
+}
+
 export class LibraryAuthError extends Error {
   constructor(message = 'Unauthorized') {
     super(message)
@@ -166,4 +177,49 @@ export async function branchCanvas(
   })
   if (!res.ok) throw new LibraryError(await res.text(), res.status)
   return (await res.json()) as CanvasMeta
+}
+
+export async function listEntities(): Promise<EntityMeta[]> {
+  const res = await request('/library/entities')
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as EntityMeta[]
+}
+
+export async function getEntity(
+  slug: string,
+): Promise<{ shapes: unknown[]; meta: EntityMeta } | null> {
+  const res = await request(`/library/entities/${encodeURIComponent(slug)}`)
+  if (res.status === 404) return null
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as { shapes: unknown[]; meta: EntityMeta }
+}
+
+export async function saveEntity(
+  name: string,
+  shapes: unknown[],
+  tags: string[] = [],
+  description = '',
+): Promise<EntityMeta> {
+  const slug = slugify(name)
+  const res = await request(`/library/entities/${encodeURIComponent(slug)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ name, shapes, tags, description }),
+  })
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as EntityMeta
+}
+
+export async function deleteEntity(slug: string): Promise<boolean> {
+  const res = await request(`/library/entities/${encodeURIComponent(slug)}`, {
+    method: 'DELETE',
+  })
+  if (res.status === 404) return false
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return true
+}
+
+export async function searchLibrary(query: string): Promise<SearchResults> {
+  const res = await request(`/library/search?q=${encodeURIComponent(query)}`)
+  if (!res.ok) throw new LibraryError(await res.text(), res.status)
+  return (await res.json()) as SearchResults
 }
