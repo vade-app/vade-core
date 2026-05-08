@@ -219,12 +219,8 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
   return (
     <aside
       style={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        bottom: 0,
         width: 260,
-        zIndex: 1400,
+        flexShrink: 0,
         background: '#1e1e2e',
         color: '#cdd6f4',
         borderLeft: '1px solid rgba(69, 71, 90, 0.6)',

@@ -56,7 +56,7 @@ function SelectedShapePanelInner({ editor }: { editor: Editor }) {
   return (
     <aside
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 60,
         right: 12,
         width: 240,
