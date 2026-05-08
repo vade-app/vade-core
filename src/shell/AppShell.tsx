@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tldraw, type Editor, type TLAssetStore, type TLUiComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { customShapeUtils, version as registryVersion } from '../shapes'
@@ -9,10 +9,7 @@ import { LibraryPanel } from '../library/LibraryPanel'
 import { useAutosave } from '../library/useAutosave'
 import { SelectedShapePanel } from '../shape-panel/SelectedShapePanel'
 import { useActiveCanvas } from './useActiveCanvas'
-import { PillButtons } from './PillButtons'
-
-type CatalogState = 'closed' | 'sidebar' | 'fullpage'
-type LibraryState = 'closed' | 'open'
+import { ShellContext, type CatalogState, type LibraryState, type ShellState } from './ShellContext'
 
 interface AppShellProps {
   assetStore: TLAssetStore
@@ -23,8 +20,9 @@ interface AppShellProps {
 
 // Top-level shell composing the canvas, the catalog (left sidebar +
 // fullpage overlay), the library panel (right sidebar with snapshot
-// history), the selected-shape param panel, and the edge pill
-// buttons that toggle the catalog/library when closed.
+// history), the selected-shape param panel, and the catalog/library
+// toggle chips that live inside tldraw's SharePanel slot
+// (TopRightSlot).
 //
 // Owns:
 // - Catalog state (closed | sidebar | fullpage)
@@ -32,6 +30,10 @@ interface AppShellProps {
 // - Editor handle (set in Tldraw onMount, then forwarded to caller)
 // - Active canvas + dirty (via useActiveCanvas hook)
 // - Per-canvas persistenceKey (vade-canvas-${slug ?? 'main'})
+//
+// Catalog/Library chips read this state via ShellContext rather
+// than rendering as standalone fixed-positioned pills, so they
+// integrate cleanly with tldraw's chrome.
 //
 // Capture-phase ESC handler steps panels down by depth:
 //   fullpage → sidebar → closed; library → closed.
@@ -96,48 +98,53 @@ export function AppShell({ assetStore, licenseKey, components, onMount }: AppShe
   // cleanly — no stale shapes leak across canvases.
   const persistenceKey = active ? `vade-canvas-${active.slug}` : 'vade-canvas-main'
 
+  const shellState = useMemo<ShellState>(
+    () => ({
+      catalog,
+      library,
+      setCatalog,
+      setLibrary,
+      activeName: active?.name ?? null,
+      dirty,
+    }),
+    [catalog, library, active, dirty],
+  )
+
   return (
-    <div style={{ position: 'fixed', inset: 0 }}>
-      <CanvasDropTarget editor={editor}>
-        <Tldraw
-          key={`${registryVersion}:${persistenceKey}`}
-          persistenceKey={persistenceKey}
-          shapeUtils={customShapeUtils}
-          assets={assetStore}
-          {...(components ? { components } : {})}
-          {...(licenseKey ? { licenseKey } : {})}
-          onMount={handleMount}
-        />
-      </CanvasDropTarget>
+    <ShellContext.Provider value={shellState}>
+      <div style={{ position: 'fixed', inset: 0 }}>
+        <CanvasDropTarget editor={editor}>
+          <Tldraw
+            key={`${registryVersion}:${persistenceKey}`}
+            persistenceKey={persistenceKey}
+            shapeUtils={customShapeUtils}
+            assets={assetStore}
+            {...(components ? { components } : {})}
+            {...(licenseKey ? { licenseKey } : {})}
+            onMount={handleMount}
+          />
+        </CanvasDropTarget>
 
-      {catalog === 'sidebar' && (
-        <Sidebar
-          onClose={() => setCatalog('closed')}
-          onExpand={() => setCatalog('fullpage')}
-        />
-      )}
+        {catalog === 'sidebar' && (
+          <Sidebar
+            onClose={() => setCatalog('closed')}
+            onExpand={() => setCatalog('fullpage')}
+          />
+        )}
 
-      {catalog === 'fullpage' && <FullPage onClose={() => setCatalog('sidebar')} />}
+        {catalog === 'fullpage' && <FullPage onClose={() => setCatalog('sidebar')} />}
 
-      {library === 'open' && editor && (
-        <LibraryPanel
-          editor={editor}
-          active={active}
-          onActiveChange={(next) => setActive(next)}
-          onClose={() => setLibrary('closed')}
-        />
-      )}
+        {library === 'open' && editor && (
+          <LibraryPanel
+            editor={editor}
+            active={active}
+            onActiveChange={(next) => setActive(next)}
+            onClose={() => setLibrary('closed')}
+          />
+        )}
 
-      <SelectedShapePanel editor={editor} />
-
-      <PillButtons
-        catalogVisible={catalog === 'closed'}
-        libraryVisible={library === 'closed'}
-        activeName={active?.name}
-        dirty={dirty}
-        onOpenCatalog={() => setCatalog('sidebar')}
-        onOpenLibrary={() => setLibrary('open')}
-      />
-    </div>
+        <SelectedShapePanel editor={editor} />
+      </div>
+    </ShellContext.Provider>
   )
 }
