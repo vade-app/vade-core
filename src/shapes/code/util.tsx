@@ -1,16 +1,5 @@
-import {
-  BaseBoxShapeUtil,
-  HTMLContainer,
-  T,
-} from '@tldraw/editor'
-
-type CodeShapeProps = {
-  w: number
-  h: number
-  code: string
-  language: string
-  output: string
-}
+import { BaseBoxShapeUtil, HTMLContainer } from '@tldraw/editor'
+import { defaultProps, tldrawProps, type CodeShapeProps } from './params'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CodeShape = any
@@ -19,22 +8,10 @@ export type { CodeShape }
 
 export class CodeShapeUtil extends BaseBoxShapeUtil<CodeShape> {
   static override type = 'vade-code' as const
-  static override props = {
-    w: T.nonZeroNumber,
-    h: T.nonZeroNumber,
-    code: T.string,
-    language: T.string,
-    output: T.string,
-  }
+  static override props = tldrawProps
 
   getDefaultProps(): CodeShapeProps {
-    return {
-      w: 320,
-      h: 200,
-      code: '',
-      language: 'typescript',
-      output: '',
-    }
+    return { ...defaultProps }
   }
 
   component(shape: { props: CodeShapeProps }) {
