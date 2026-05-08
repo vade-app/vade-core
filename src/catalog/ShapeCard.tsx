@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { fontSans, size } from '../shell/typography'
 
 export const SHAPE_MIME = 'application/x-vade-canvas-shape'
 export const ENTITY_MIME = 'application/x-vade-canvas-entity'
@@ -63,8 +64,8 @@ export function ShapeCard({
     background: 'rgba(30, 30, 46, 0.85)',
     color: '#cdd6f4',
     cursor: 'grab',
-    fontFamily: 'system-ui, sans-serif',
-    fontSize: layout === 'tile' ? 13 : 12,
+    fontFamily: fontSans,
+    fontSize: layout === 'tile' ? size.lg : size.md,
     userSelect: 'none',
   }
 
@@ -92,7 +93,7 @@ export function ShapeCard({
     >
       <div style={{ fontWeight: 600 }}>{name}</div>
       {category && (
-        <div style={{ fontSize: 10, color: '#7f849c' }}>{category}</div>
+        <div style={{ fontSize: size.xs, color: '#7f849c' }}>{category}</div>
       )}
       {tags && tags.length > 0 && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
@@ -100,7 +101,7 @@ export function ShapeCard({
             <span
               key={t}
               style={{
-                fontSize: 10,
+                fontSize: size.xs,
                 padding: '1px 5px',
                 borderRadius: 4,
                 background: 'rgba(137, 180, 250, 0.15)',

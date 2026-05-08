@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { fontSans, size } from '../shell/typography'
 
 interface SaveDialogProps {
   open: boolean
@@ -60,10 +61,10 @@ export function SaveDialog({
           borderRadius: 12,
           border: '1px solid rgba(69, 71, 90, 0.6)',
           boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily: fontSans,
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{title}</div>
+        <div style={{ fontSize: size.xl, fontWeight: 600, marginBottom: 12 }}>{title}</div>
         <input
           ref={inputRef}
           type="text"
@@ -82,7 +83,7 @@ export function SaveDialog({
             border: '1px solid rgba(69, 71, 90, 0.6)',
             color: '#cdd6f4',
             borderRadius: 6,
-            fontSize: 13,
+            fontSize: size.lg,
           }}
         />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
@@ -96,7 +97,7 @@ export function SaveDialog({
               border: '1px solid rgba(69, 71, 90, 0.6)',
               background: 'transparent',
               color: '#cdd6f4',
-              fontSize: 12,
+              fontSize: size.md,
               cursor: busy ? 'default' : 'pointer',
             }}
           >
@@ -112,7 +113,7 @@ export function SaveDialog({
               border: '1px solid rgba(137, 180, 250, 0.6)',
               background: 'rgba(137, 180, 250, 0.15)',
               color: '#cdd6f4',
-              fontSize: 12,
+              fontSize: size.md,
               cursor: busy ? 'default' : 'pointer',
             }}
           >

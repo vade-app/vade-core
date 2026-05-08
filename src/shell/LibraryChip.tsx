@@ -1,4 +1,5 @@
 import { useShell } from './ShellContext'
+import { fontMono, size } from './typography'
 
 // Toggle chip for the library panel. Carries active canvas name +
 // dirty dot for at-a-glance status. Renders inside tldraw's
@@ -20,18 +21,18 @@ export function LibraryChip() {
         gap: 6,
         padding: '5px 10px',
         maxWidth: 240,
-        borderRadius: 10,
-        border: '1px solid rgba(69, 71, 90, 0.6)',
-        background: open ? 'rgba(137, 180, 250, 0.18)' : 'rgba(30, 30, 46, 0.85)',
-        color: '#cdd6f4',
-        fontFamily: 'ui-monospace, monospace',
-        fontSize: 11,
+        borderRadius: 'var(--tl-radius-4)',
+        border: '1px solid var(--tl-color-divider)',
+        background: open ? 'var(--tl-color-muted-1)' : 'var(--tl-color-panel-overlay)',
+        color: 'var(--tl-color-text)',
+        fontFamily: fontMono,
+        fontSize: size.sm,
         cursor: 'pointer',
         backdropFilter: 'blur(8px)',
       }}
     >
-      <span style={{ color: '#6c7086' }}>≡</span>
-      <span style={{ color: '#6c7086' }}>Canvas:</span>
+      <span style={{ color: 'var(--tl-color-text-3)' }}>≡</span>
+      <span style={{ color: 'var(--tl-color-text-3)' }}>Canvas:</span>
       <span
         style={{
           overflow: 'hidden',
@@ -49,7 +50,7 @@ export function LibraryChip() {
             width: 6,
             height: 6,
             borderRadius: '50%',
-            background: '#f9e2af',
+            background: 'var(--tl-color-warning)',
             flexShrink: 0,
           }}
         />

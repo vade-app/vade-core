@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { type Editor, useValue } from 'tldraw'
 import { metas as shapeMetas } from '../shapes/registry'
+import { fontSans, size } from '../shell/typography'
 import { ParamForm } from './ParamForm'
 
 interface SelectedShapePanelProps {
@@ -67,13 +68,13 @@ function SelectedShapePanelInner({ editor }: { editor: Editor }) {
         borderRadius: 10,
         padding: 12,
         boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily: fontSans,
       }}
     >
       <header style={{ marginBottom: 10 }}>
         <div
           style={{
-            fontSize: 11,
+            fontSize: size.sm,
             letterSpacing: 1.2,
             color: '#7f849c',
             textTransform: 'uppercase',
@@ -82,7 +83,7 @@ function SelectedShapePanelInner({ editor }: { editor: Editor }) {
           {meta.name}
         </div>
         {meta.description && (
-          <div style={{ fontSize: 11, color: '#6c7086', marginTop: 2 }}>
+          <div style={{ fontSize: size.sm, color: '#6c7086', marginTop: 2 }}>
             {meta.description}
           </div>
         )}
