@@ -1,0 +1,26 @@
+{
+  "skill_name": "canvas-ui",
+  "evals": [
+    {
+      "id": 0,
+      "name": "add-sticky-note-shape",
+      "prompt": "I want to add a sticky-note custom shape to vade-core. It should have a default yellow background, a `text` prop for the note body, and a `color` prop the user can switch between yellow / pink / green. Walk me through the files to create and write the actual code.",
+      "expected_output": "Three-file structure (params.ts with both Zod paramSchema and tldraw T.* tldrawProps + defaultProps; util.tsx with BaseBoxShapeUtil and HTMLContainer; meta.ts as registry entry). Should mention `'vade-note'` shape ID, automatic registry pickup via glob-import. Should not introduce custom asset URI schemes or per-shape persistenceKey ideas.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "empty-canvas-on-switch",
+      "prompt": "Something broke after the recent shell rework. When I switch between saved canvases via the LibraryPanel, the canvas loads with the saved shapes briefly and then goes empty. Saving and re-opening from the same session works fine — it's only when I switch active canvas that I get the blank state. What's going on and how do I fix it?",
+      "expected_output": "Should diagnose the persistenceKey + loadSnapshot race. Recognize that per-canvas persistenceKey causes Tldraw to remount on switch, hydrating from the new (empty) IndexedDB key and discarding the just-loaded snapshot. Recommend reverting to a single static persistenceKey and treating loadSnapshot as the source of truth. Should reference PR #178 / issue #177 / PR #174 if grounded enough.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "new-asset-uri-scheme",
+      "prompt": "Quick sanity check before I implement: I'm planning to add background-image storage for canvases. The plan is to upload images to R2 and emit their srcs as `bgimage:<sha256>` so my new BackgroundAssetStore can recognize them and route resolution through R2. Anything I should know before I write this?",
+      "expected_output": "Should flag that `bgimage:` will fail tldraw's srcUrl validator on canvas load (allowlist is http/https/data/asset). Recommend sub-namespacing under asset:, e.g. `asset:bgimage-<sha256>` or `asset:vade-bg-<sha256>`. Should reference the worked example of PR #119 → #121 if grounded enough. Should also note that the existing vade-asset-store may already handle the case or should be extended rather than parallel-implemented.",
+      "files": []
+    }
+  ]
+}
