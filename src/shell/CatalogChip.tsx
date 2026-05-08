@@ -1,8 +1,9 @@
 import { useShell } from './ShellContext'
 
-// Toggle chip for the catalog sidebar/fullpage. Matches the visual
-// style of DftButton/LineageButton/PortraitButton so it integrates
-// cleanly into tldraw's SharePanel slot.
+// Toggle chip for the catalog sidebar/fullpage. Renders inside
+// tldraw's SharePanel slot via TopRightSlot. Style is the inline
+// Catppuccin-pill placeholder pending the theme-tokens pass at
+// #180.
 export function CatalogChip() {
   const { catalog, setCatalog } = useShell()
   const open = catalog !== 'closed'
