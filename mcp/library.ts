@@ -4,12 +4,21 @@ export interface CanvasMeta {
   description: string
   created: string
   modified: string
+  parent_slug?: string
+  parent_snapshot?: string
 }
 
 export interface EntityMeta {
   name: string
   tags: string[]
   description: string
+}
+
+export interface SnapshotMeta {
+  snapshot_id: string
+  canvas_slug: string
+  label: string
+  created: string
 }
 
 export interface LibraryStore {
@@ -22,6 +31,10 @@ export interface LibraryStore {
   listEntities(): Promise<EntityMeta[]>
   deleteEntity(name: string): Promise<boolean>
   searchLibrary(query: string): Promise<{ canvases: CanvasMeta[]; entities: EntityMeta[] }>
+  saveSnapshot(canvasName: string, label?: string): Promise<SnapshotMeta>
+  listSnapshots(canvasName: string): Promise<SnapshotMeta[]>
+  restoreSnapshot(canvasName: string, snapshotId: string): Promise<{ snapshot: unknown; meta: CanvasMeta } | null>
+  branchCanvas(parentName: string, newName: string, fromSnapshot?: string): Promise<CanvasMeta>
 }
 
 export function slugify(name: string): string {

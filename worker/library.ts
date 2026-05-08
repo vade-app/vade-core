@@ -6,12 +6,21 @@ type CanvasMeta = {
   description: string
   created: string
   modified: string
+  parent_slug?: string
+  parent_snapshot?: string
 }
 
 type EntityMeta = {
   name: string
   tags: string[]
   description: string
+}
+
+type SnapshotMeta = {
+  snapshot_id: string
+  canvas_slug: string
+  label: string
+  created: string
 }
 
 type CanvasRow = {
@@ -21,6 +30,8 @@ type CanvasRow = {
   description: string
   created: string
   modified: string
+  parent_slug: string | null
+  parent_snapshot: string | null
 }
 
 type EntityRow = {
@@ -28,6 +39,13 @@ type EntityRow = {
   name: string
   tags: string
   description: string
+}
+
+type SnapshotRow = {
+  snapshot_id: string
+  canvas_slug: string
+  label: string
+  created: string
 }
 
 const json = (data: unknown, status = 200): Response =>
@@ -40,12 +58,24 @@ const text = (body: string, status: number): Response =>
   new Response(body, { status, headers: { 'Content-Type': 'text/plain' } })
 
 function canvasMetaFromRow(row: CanvasRow): CanvasMeta {
-  return {
+  const meta: CanvasMeta = {
     name: row.name,
     tags: JSON.parse(row.tags) as string[],
     description: row.description,
     created: row.created,
     modified: row.modified,
+  }
+  if (row.parent_slug) meta.parent_slug = row.parent_slug
+  if (row.parent_snapshot) meta.parent_snapshot = row.parent_snapshot
+  return meta
+}
+
+function snapshotMetaFromRow(row: SnapshotRow): SnapshotMeta {
+  return {
+    snapshot_id: row.snapshot_id,
+    canvas_slug: row.canvas_slug,
+    label: row.label,
+    created: row.created,
   }
 }
 
@@ -61,8 +91,30 @@ function canvasKey(slug: string): string {
   return `canvases/${slug}/snapshot.tldr`
 }
 
+function historyKey(slug: string, snapshotId: string): string {
+  return `canvases/${slug}/history/${snapshotId}.tldr`
+}
+
+function historyPrefix(slug: string): string {
+  return `canvases/${slug}/history/`
+}
+
 function assetKey(hash: string): string {
   return `assets/${hash}`
+}
+
+// snapshot_id = `${cleanIso}${label ? '-' + slug : ''}` where cleanIso
+// replaces `:` and `.` (ISO timestamp delimiters) with `-` so the value
+// is safe to use as a URL path segment without escaping.
+function generateSnapshotId(label: string | undefined): string {
+  const iso = new Date().toISOString().replace(/[:.]/g, '-')
+  if (!label) return iso
+  const slug = label.replace(/[^a-z0-9_-]/gi, '-').toLowerCase()
+  return slug ? `${iso}-${slug}` : iso
+}
+
+function slugifyName(raw: string): string {
+  return raw.replace(/[^a-z0-9_-]/gi, '-').toLowerCase()
 }
 
 const ASSET_HASH_RE = /^[0-9a-f]{64}$/
@@ -136,9 +188,11 @@ export async function handleLibrary(req: Request, env: Env, url: URL): Promise<R
   }
 
   const parts = url.pathname.split('/').filter(Boolean)
-  // [ 'library', <resource>, <slug?> ]
+  // [ 'library', <resource>, <slug?>, <action?>, <action_arg?> ]
   const resource = parts[1]
   const slug = parts[2]
+  const action = parts[3]
+  const actionArg = parts[4]
 
   try {
     if (resource === 'canvases') {
@@ -146,6 +200,25 @@ export async function handleLibrary(req: Request, env: Env, url: URL): Promise<R
         if (req.method === 'GET') return listCanvases(env)
         return text('Method not allowed', 405)
       }
+      // Per-canvas action routes: /library/canvases/<slug>/<action>[/<arg>]
+      if (action === 'snapshots') {
+        if (!actionArg) {
+          if (req.method === 'GET') return listSnapshots(env, slug)
+          if (req.method === 'POST') return saveSnapshot(env, slug, await req.json())
+          return text('Method not allowed', 405)
+        }
+        if (req.method === 'DELETE') return deleteSnapshot(env, slug, actionArg)
+        return text('Method not allowed', 405)
+      }
+      if (action === 'restore') {
+        if (req.method === 'POST') return restoreSnapshot(env, slug, await req.json())
+        return text('Method not allowed', 405)
+      }
+      if (action === 'branch') {
+        if (req.method === 'POST') return branchCanvas(env, slug, await req.json())
+        return text('Method not allowed', 405)
+      }
+      if (action) return text('Not found', 404)
       if (req.method === 'GET') return getCanvas(env, slug)
       if (req.method === 'PUT') return putCanvas(env, slug, await req.json())
       if (req.method === 'DELETE') return deleteCanvas(env, slug)
@@ -185,14 +258,14 @@ export async function handleLibrary(req: Request, env: Env, url: URL): Promise<R
 
 async function listCanvases(env: Env): Promise<Response> {
   const { results } = await env.vade_library
-    .prepare('SELECT slug, name, tags, description, created, modified FROM canvases ORDER BY modified DESC')
+    .prepare('SELECT slug, name, tags, description, created, modified, parent_slug, parent_snapshot FROM canvases ORDER BY modified DESC')
     .all<CanvasRow>()
   return json(results.map(canvasMetaFromRow))
 }
 
 async function getCanvas(env: Env, slug: string): Promise<Response> {
   const row = await env.vade_library
-    .prepare('SELECT slug, name, tags, description, created, modified FROM canvases WHERE slug = ?')
+    .prepare('SELECT slug, name, tags, description, created, modified, parent_slug, parent_snapshot FROM canvases WHERE slug = ?')
     .bind(slug)
     .first<CanvasRow>()
   if (!row) return text('Not found', 404)
@@ -240,9 +313,180 @@ async function deleteCanvas(env: Env, slug: string): Promise<Response> {
     .first<{ slug: string }>()
   if (!existing) return text('Not found', 404)
 
+  // Cascade R2 deletes for the head and every named snapshot under
+  // history/. D1's FK ON DELETE CASCADE removes canvas_snapshots rows.
   await env.LIBRARY_R2.delete(canvasKey(slug))
+  await deleteHistoryPrefix(env, slug)
   await env.vade_library.prepare('DELETE FROM canvases WHERE slug = ?').bind(slug).run()
   return new Response(null, { status: 204 })
+}
+
+async function deleteHistoryPrefix(env: Env, slug: string): Promise<void> {
+  const prefix = historyPrefix(slug)
+  let cursor: string | undefined
+  do {
+    const listed = await env.LIBRARY_R2.list({ prefix, cursor })
+    if (listed.objects.length === 0) break
+    await env.LIBRARY_R2.delete(listed.objects.map((o) => o.key))
+    cursor = listed.truncated ? listed.cursor : undefined
+  } while (cursor)
+}
+
+async function listSnapshots(env: Env, slug: string): Promise<Response> {
+  const canvas = await env.vade_library
+    .prepare('SELECT slug FROM canvases WHERE slug = ?')
+    .bind(slug)
+    .first<{ slug: string }>()
+  if (!canvas) return text('Not found', 404)
+  const { results } = await env.vade_library
+    .prepare(
+      `SELECT snapshot_id, canvas_slug, label, created FROM canvas_snapshots
+       WHERE canvas_slug = ? ORDER BY created DESC`,
+    )
+    .bind(slug)
+    .all<SnapshotRow>()
+  return json(results.map(snapshotMetaFromRow))
+}
+
+async function saveSnapshot(env: Env, slug: string, body: unknown): Promise<Response> {
+  const b = body as { label?: unknown }
+  const label = typeof b.label === 'string' ? b.label : ''
+
+  const canvas = await env.vade_library
+    .prepare('SELECT slug FROM canvases WHERE slug = ?')
+    .bind(slug)
+    .first<{ slug: string }>()
+  if (!canvas) return text('Not found', 404)
+
+  const head = await env.LIBRARY_R2.get(canvasKey(slug))
+  if (!head) return text('No head snapshot to capture', 409)
+
+  const snapshotId = generateSnapshotId(label || undefined)
+  const created = new Date().toISOString()
+
+  // Round-trip the bytes through the isolate (R2 has no server-side
+  // copy primitive). Snapshot bodies stay small because asset bytes
+  // are referenced by hash, not embedded.
+  const bytes = await head.arrayBuffer()
+  await env.LIBRARY_R2.put(historyKey(slug, snapshotId), bytes)
+
+  await env.vade_library
+    .prepare(
+      `INSERT INTO canvas_snapshots (snapshot_id, canvas_slug, label, created)
+       VALUES (?, ?, ?, ?)`,
+    )
+    .bind(snapshotId, slug, label, created)
+    .run()
+
+  return json({
+    snapshot_id: snapshotId,
+    canvas_slug: slug,
+    label,
+    created,
+  } satisfies SnapshotMeta)
+}
+
+async function deleteSnapshot(env: Env, slug: string, snapshotId: string): Promise<Response> {
+  const row = await env.vade_library
+    .prepare('SELECT snapshot_id FROM canvas_snapshots WHERE snapshot_id = ? AND canvas_slug = ?')
+    .bind(snapshotId, slug)
+    .first<{ snapshot_id: string }>()
+  if (!row) return text('Not found', 404)
+
+  await env.LIBRARY_R2.delete(historyKey(slug, snapshotId))
+  await env.vade_library
+    .prepare('DELETE FROM canvas_snapshots WHERE snapshot_id = ? AND canvas_slug = ?')
+    .bind(snapshotId, slug)
+    .run()
+  return new Response(null, { status: 204 })
+}
+
+async function restoreSnapshot(env: Env, slug: string, body: unknown): Promise<Response> {
+  const b = body as { snapshot_id?: unknown }
+  if (typeof b.snapshot_id !== 'string') return text('snapshot_id required', 400)
+  const snapshotId = b.snapshot_id
+
+  const row = await env.vade_library
+    .prepare('SELECT snapshot_id FROM canvas_snapshots WHERE snapshot_id = ? AND canvas_slug = ?')
+    .bind(snapshotId, slug)
+    .first<{ snapshot_id: string }>()
+  if (!row) return text('Snapshot not found', 404)
+
+  const obj = await env.LIBRARY_R2.get(historyKey(slug, snapshotId))
+  if (!obj) return text('Snapshot body missing', 404)
+
+  // Copy snapshot bytes back to head, then bump modified.
+  const bytes = await obj.arrayBuffer()
+  await env.LIBRARY_R2.put(canvasKey(slug), bytes)
+  const now = new Date().toISOString()
+  await env.vade_library
+    .prepare('UPDATE canvases SET modified = ? WHERE slug = ?')
+    .bind(now, slug)
+    .run()
+
+  // Return the same shape as getCanvas so clients can reuse loadSnapshot.
+  const meta = await env.vade_library
+    .prepare(
+      'SELECT slug, name, tags, description, created, modified, parent_slug, parent_snapshot FROM canvases WHERE slug = ?',
+    )
+    .bind(slug)
+    .first<CanvasRow>()
+  if (!meta) return text('Not found', 404)
+  const snapshot = JSON.parse(new TextDecoder().decode(bytes))
+  return json({ snapshot, meta: canvasMetaFromRow(meta) })
+}
+
+async function branchCanvas(env: Env, parentSlug: string, body: unknown): Promise<Response> {
+  const b = body as { name?: unknown; from_snapshot?: unknown }
+  if (typeof b.name !== 'string') return text('name required', 400)
+  const newSlug = slugifyName(b.name)
+  if (!newSlug) return text('name produced empty slug', 400)
+  const fromSnapshot = typeof b.from_snapshot === 'string' ? b.from_snapshot : null
+
+  // Refuse if the target slug already exists — branching is "clean fork
+  // into new namespace" not "overwrite".
+  const clash = await env.vade_library
+    .prepare('SELECT slug FROM canvases WHERE slug = ?')
+    .bind(newSlug)
+    .first<{ slug: string }>()
+  if (clash) return text(`Canvas "${newSlug}" already exists`, 409)
+
+  // Source bytes: from named snapshot history or the parent's head.
+  let sourceBytes: ArrayBuffer
+  if (fromSnapshot) {
+    const snapRow = await env.vade_library
+      .prepare('SELECT snapshot_id FROM canvas_snapshots WHERE snapshot_id = ? AND canvas_slug = ?')
+      .bind(fromSnapshot, parentSlug)
+      .first<{ snapshot_id: string }>()
+    if (!snapRow) return text('from_snapshot not found on parent', 404)
+    const obj = await env.LIBRARY_R2.get(historyKey(parentSlug, fromSnapshot))
+    if (!obj) return text('Snapshot body missing', 404)
+    sourceBytes = await obj.arrayBuffer()
+  } else {
+    const head = await env.LIBRARY_R2.get(canvasKey(parentSlug))
+    if (!head) return text('Parent canvas has no head snapshot', 404)
+    sourceBytes = await head.arrayBuffer()
+  }
+
+  const now = new Date().toISOString()
+  await env.LIBRARY_R2.put(canvasKey(newSlug), sourceBytes)
+  await env.vade_library
+    .prepare(
+      `INSERT INTO canvases (slug, name, tags, description, created, modified, parent_slug, parent_snapshot)
+       VALUES (?, ?, '[]', '', ?, ?, ?, ?)`,
+    )
+    .bind(newSlug, b.name, now, now, parentSlug, fromSnapshot)
+    .run()
+
+  return json({
+    name: b.name,
+    tags: [],
+    description: '',
+    created: now,
+    modified: now,
+    parent_slug: parentSlug,
+    ...(fromSnapshot ? { parent_snapshot: fromSnapshot } : {}),
+  } satisfies CanvasMeta)
 }
 
 // Content-addressed binary assets (uploaded images, etc.) referenced from
@@ -339,7 +583,7 @@ async function search(env: Env, query: string): Promise<Response> {
   const q = `%${query.toLowerCase()}%`
   const canvasQ = env.vade_library
     .prepare(
-      `SELECT slug, name, tags, description, created, modified FROM canvases
+      `SELECT slug, name, tags, description, created, modified, parent_slug, parent_snapshot FROM canvases
        WHERE lower(name) LIKE ? OR lower(description) LIKE ? OR lower(tags) LIKE ?
        ORDER BY modified DESC`,
     )

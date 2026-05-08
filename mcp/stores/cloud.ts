@@ -1,4 +1,4 @@
-import type { CanvasMeta, EntityMeta, LibraryStore } from '../library.js'
+import type { CanvasMeta, EntityMeta, LibraryStore, SnapshotMeta } from '../library.js'
 import { slugify } from '../library.js'
 
 export class CloudLibraryStore implements LibraryStore {
@@ -81,5 +81,40 @@ export class CloudLibraryStore implements LibraryStore {
 
   async searchLibrary(query: string): Promise<{ canvases: CanvasMeta[]; entities: EntityMeta[] }> {
     return this.json('GET', `/search?q=${encodeURIComponent(query)}`)
+  }
+
+  async saveSnapshot(canvasName: string, label?: string): Promise<SnapshotMeta> {
+    return this.json<SnapshotMeta>(
+      'POST',
+      `/canvases/${slugify(canvasName)}/snapshots`,
+      { label: label ?? '' },
+    )
+  }
+
+  async listSnapshots(canvasName: string): Promise<SnapshotMeta[]> {
+    return this.json<SnapshotMeta[]>('GET', `/canvases/${slugify(canvasName)}/snapshots`)
+  }
+
+  async restoreSnapshot(
+    canvasName: string,
+    snapshotId: string,
+  ): Promise<{ snapshot: unknown; meta: CanvasMeta } | null> {
+    const res = await this.req('POST', `/canvases/${slugify(canvasName)}/restore`, {
+      snapshot_id: snapshotId,
+    })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error(`Cloud library restoreSnapshot failed: ${res.status}`)
+    return (await res.json()) as { snapshot: unknown; meta: CanvasMeta }
+  }
+
+  async branchCanvas(
+    parentName: string,
+    newName: string,
+    fromSnapshot?: string,
+  ): Promise<CanvasMeta> {
+    return this.json<CanvasMeta>('POST', `/canvases/${slugify(parentName)}/branch`, {
+      name: newName,
+      ...(fromSnapshot ? { from_snapshot: fromSnapshot } : {}),
+    })
   }
 }
