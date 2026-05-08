@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Tldraw, type TLUiComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { customShapeUtils } from './shapes'
+import { customShapeUtils, version as registryVersion } from './shapes'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
 import { TopRightSlot } from './components/TopRightSlot'
 import { createVadeAssetStore } from './assets/vade-asset-store'
@@ -209,6 +209,7 @@ export default function App() {
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
       <Tldraw
+        key={registryVersion}
         persistenceKey="vade-main"
         shapeUtils={customShapeUtils}
         components={tldrawComponents}

@@ -1,7 +1,5 @@
-import { CodeShapeUtil } from './CodeShape'
-import { DataShapeUtil } from './DataShape'
+export { utils as customShapeUtils, metas, version } from './registry'
+export type { ShapeMeta } from './_types'
 
-export const customShapeUtils = [CodeShapeUtil, DataShapeUtil]
-
-export { CodeShapeUtil, type CodeShape } from './CodeShape'
-export { DataShapeUtil, type DataShape } from './DataShape'
+export { CodeShapeUtil, type CodeShape } from './code'
+export { DataShapeUtil, type DataShape } from './data'

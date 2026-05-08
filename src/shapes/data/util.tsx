@@ -1,15 +1,5 @@
-import {
-  BaseBoxShapeUtil,
-  HTMLContainer,
-  T,
-} from '@tldraw/editor'
-
-type DataShapeProps = {
-  w: number
-  h: number
-  data: string
-  label: string
-}
+import { BaseBoxShapeUtil, HTMLContainer } from '@tldraw/editor'
+import { defaultProps, tldrawProps, type DataShapeProps } from './params'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DataShape = any
@@ -64,20 +54,10 @@ function renderValue(value: unknown, depth: number): JSX.Element {
 
 export class DataShapeUtil extends BaseBoxShapeUtil<DataShape> {
   static override type = 'vade-data' as const
-  static override props = {
-    w: T.nonZeroNumber,
-    h: T.nonZeroNumber,
-    data: T.string,
-    label: T.string,
-  }
+  static override props = tldrawProps
 
   getDefaultProps(): DataShapeProps {
-    return {
-      w: 280,
-      h: 180,
-      data: '{}',
-      label: 'Data',
-    }
+    return { ...defaultProps }
   }
 
   component(shape: { props: DataShapeProps }) {
