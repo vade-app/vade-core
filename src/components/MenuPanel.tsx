@@ -16,11 +16,16 @@ const TldrawUiButton = _TldrawUiButton as unknown as FC<{
 const TldrawUiButtonLabel = _TldrawUiButtonLabel as unknown as FC<{ children?: ReactNode }>
 
 // Custom MenuPanel: tldraw's default top-left menu group (MainMenu +
-// PageMenu) with Catalog + Canvas (Library) toggles appended as
-// TldrawUiButton siblings, so VADE's two primary navigations read as
-// first-class chrome rather than auxiliary chips floating in the
-// SharePanel slot. Wired into tldrawComponents in App.tsx. Closes
-// vade-core#182 (Epic #179 §c).
+// PageMenu) with Catalog + Canvas toggles as discrete chrome buttons,
+// followed by a non-button readout of the active canvas name + dirty
+// indicator. A 1px divider separates the DefaultMenuPanel from the
+// VADE toggles so the three regions read as distinct.
+//
+// The Canvas toggle's label is fixed ('Canvas') — the active canvas
+// name is a separate readout, not the button label. (Earlier shape
+// rendered the active name as the button text, which read as the
+// button being renamed; the readout makes the name a state display
+// adjacent to a stable control.)
 //
 // DefaultMenuPanel resolves its inner MainMenu through the components
 // context, so our custom MainMenu (which adds the Sign-out item per
@@ -33,6 +38,7 @@ export function MenuPanel() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4, pointerEvents: 'all' }}>
       <DefaultMenuPanel />
+      <Divider />
       <TldrawUiButton
         type="menu"
         isActive={catalogOpen}
@@ -47,35 +53,62 @@ export function MenuPanel() {
         onClick={() => setLibrary(libraryOpen ? 'closed' : 'open')}
         title={libraryOpen ? 'Close library' : 'Open library (canvases + snapshots)'}
       >
-        <TldrawUiButtonLabel>
-          <span
-            style={{
-              display: 'inline-block',
-              maxWidth: 160,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              verticalAlign: 'bottom',
-            }}
-          >
-            {activeName ?? 'Canvas'}
-          </span>
-          {dirty && (
-            <span
-              aria-label="unsaved changes"
-              style={{
-                display: 'inline-block',
-                width: 6,
-                height: 6,
-                marginLeft: 6,
-                borderRadius: '50%',
-                background: 'var(--tl-color-warning)',
-                verticalAlign: 'middle',
-              }}
-            />
-          )}
-        </TldrawUiButtonLabel>
+        <TldrawUiButtonLabel>Canvas</TldrawUiButtonLabel>
       </TldrawUiButton>
+      {activeName && (
+        <>
+          <Divider />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '0 8px',
+              color: 'var(--tl-color-text-3)',
+              fontSize: 12,
+              maxWidth: 200,
+            }}
+            title={dirty ? `${activeName} (unsaved changes)` : activeName}
+          >
+            <span
+              style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {activeName}
+            </span>
+            {dirty && (
+              <span
+                aria-label="unsaved changes"
+                style={{
+                  flexShrink: 0,
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--tl-color-warning)',
+                }}
+              />
+            )}
+          </div>
+        </>
+      )}
     </div>
+  )
+}
+
+function Divider() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: 1,
+        height: 18,
+        margin: '0 4px',
+        background: 'var(--tl-color-divider)',
+        flexShrink: 0,
+      }}
+    />
   )
 }
