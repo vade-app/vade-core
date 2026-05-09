@@ -21,19 +21,19 @@ interface AppShellProps {
 // Top-level shell composing the canvas, the catalog (left sidebar +
 // fullpage overlay), the library panel (right sidebar with snapshot
 // history), the selected-shape param panel, and the catalog/library
-// toggle chips that live inside tldraw's SharePanel slot
-// (TopRightSlot).
+// toggles that live inside tldraw's MenuPanel slot (MenuPanel.tsx,
+// vade-core#182).
 //
 // Owns:
 // - Catalog state (closed | sidebar | fullpage)
 // - Library state (closed | open)
 // - Editor handle (set in Tldraw onMount, then forwarded to caller)
 // - Active canvas + dirty (via useActiveCanvas hook)
-// - Per-canvas persistenceKey (vade-canvas-${slug ?? 'main'})
+// - Single static persistenceKey ('vade-main')
 //
-// Catalog/Library chips read this state via ShellContext rather
-// than rendering as standalone fixed-positioned pills, so they
-// integrate cleanly with tldraw's chrome.
+// MenuPanel reads this state via ShellContext, so the toggles
+// integrate as first-class chrome adjacent to MainMenu / PageMenu
+// rather than as standalone fixed-positioned pills.
 //
 // Capture-phase ESC handler steps panels down by depth:
 //   fullpage → sidebar → closed; library → closed.
