@@ -96,6 +96,22 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
     [canvases],
   )
 
+  const [pendingBranchSnap, setPendingBranchSnap] = useState<string | null>(null)
+
+  // Close a dialog and return keyboard focus to the editor. SaveDialog
+  // portals to document.body so the dialog steals focus while open;
+  // tldraw's keyboard shortcuts (H, V, etc.) and wheel/pan stop firing
+  // until the editor regains focus. Likewise loadSnapshot restores the
+  // saved instance record carrying isFocused=false. Both failure paths
+  // are canvas-ui skill landmine 5; this helper is the canonical close
+  // for dialog-flow paths, and standalone loadSnapshot call sites
+  // (onLoad, onRestore) call editor.focus() inline. (#195)
+  const closeDialog = useCallback(() => {
+    setDialog(null)
+    setPendingBranchSnap(null)
+    editor.focus()
+  }, [editor])
+
   const onLoad = async (meta: CanvasMeta) => {
     setError(null)
     try {
@@ -106,6 +122,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
         return
       }
       loadSnapshot(editor.store, result.snapshot as Parameters<typeof loadSnapshot>[1])
+      editor.focus()
       onActiveChange({ slug, name: meta.name })
     } catch (err) {
       setError(surface(err))
@@ -123,7 +140,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
       await saveCanvas(active.name, snapshot, [], '')
       await saveSnapshot(active.slug, label)
       await Promise.all([refreshCanvases(), refreshSnapshots()])
-      setDialog(null)
+      closeDialog()
     } catch (err) {
       setError(surface(err))
     } finally {
@@ -144,7 +161,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
         onActiveChange({ slug: newSlug, name: meta.name })
       }
       await refreshCanvases()
-      setDialog(null)
+      closeDialog()
     } catch (err) {
       setError(surface(err))
     } finally {
@@ -163,7 +180,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
       const slug = slugify(name)
       onActiveChange({ slug, name })
       await refreshCanvases()
-      setDialog(null)
+      closeDialog()
     } catch (err) {
       setError(surface(err))
     } finally {
@@ -181,20 +198,19 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
         return
       }
       loadSnapshot(editor.store, result.snapshot as Parameters<typeof loadSnapshot>[1])
+      editor.focus()
       await refreshCanvases()
     } catch (err) {
       setError(surface(err))
     }
   }
 
-  const [pendingBranchSnap, setPendingBranchSnap] = useState<string | null>(null)
-
   const handleDialogSubmit = (value: string) => {
     if (dialog === 'snapshot') return onSaveSnapshot(value)
-    if (dialog === 'new') return value ? onNewCanvas(value) : setDialog(null)
+    if (dialog === 'new') return value ? onNewCanvas(value) : closeDialog()
     if (dialog === 'branch') {
       if (!value) {
-        setDialog(null)
+        closeDialog()
         return
       }
       return onBranchFromSnapshot(pendingBranchSnap, value)
@@ -389,10 +405,7 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
           title={dialogConfig.title}
           placeholder={dialogConfig.placeholder}
           busy={busy}
-          onCancel={() => {
-            setDialog(null)
-            setPendingBranchSnap(null)
-          }}
+          onCancel={closeDialog}
           onSubmit={handleDialogSubmit}
         />
       )}
