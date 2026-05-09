@@ -5,6 +5,7 @@ import {
   type SnapshotMeta,
   LibraryAuthError,
   branchCanvas,
+  deleteCanvas,
   getCanvas,
   listCanvases,
   listSnapshots,
@@ -205,6 +206,36 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
     }
   }
 
+  // Two-click confirm for canvas delete: first click arms (slug
+  // moves into pendingDelete), second click within 3s commits.
+  // Auto-revert via setTimeout. Matches the inline-action style of
+  // the snapshot rows; no modal needed for a one-row destructive op.
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!pendingDelete) return
+    const t = setTimeout(() => setPendingDelete(null), 3000)
+    return () => clearTimeout(t)
+  }, [pendingDelete])
+
+  const onDelete = async (slug: string) => {
+    setError(null)
+    try {
+      await deleteCanvas(slug)
+      // If the deleted canvas was active, clear active so the
+      // MenuPanel readout stops pointing at a record that no longer
+      // exists. Editor content stays in memory; user can Save… as
+      // a new canvas, switch to another canvas, or close the panel.
+      if (active?.slug === slug) {
+        onActiveChange(null)
+      }
+      setPendingDelete(null)
+      await refreshCanvases()
+    } catch (err) {
+      setError(surface(err))
+    }
+  }
+
   const handleDialogSubmit = (value: string) => {
     if (dialog === 'snapshot') return onSaveSnapshot(value)
     if (dialog === 'new') return value ? onNewCanvas(value) : closeDialog()
@@ -321,29 +352,56 @@ export function LibraryPanel({ editor, active, onActiveChange, onClose }: Librar
             sortedCanvases.map((c) => {
               const slug = slugify(c.name)
               const isActive = active?.slug === slug
+              const isPendingDelete = pendingDelete === slug
               return (
-                <button
+                <div
                   key={slug}
-                  type="button"
-                  onClick={() => onLoad(c)}
                   style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '6px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '0 8px 0 0',
                     background: isActive ? 'var(--tl-color-muted-1)' : 'transparent',
-                    border: 'none',
-                    color: isActive ? 'var(--tl-color-selected)' : 'var(--tl-color-text)',
-                    cursor: 'pointer',
-                    fontSize: size.md,
                   }}
                 >
-                  <div style={{ fontWeight: isActive ? 600 : 400 }}>{c.name}</div>
-                  <div style={{ fontSize: size.sm, color: 'var(--tl-color-text-3)' }}>
-                    {fmtTime(c.modified)}
-                    {c.parent_slug && ` · from ${c.parent_slug}`}
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onLoad(c)}
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      textAlign: 'left',
+                      padding: '6px 12px',
+                      background: 'transparent',
+                      border: 'none',
+                      color: isActive ? 'var(--tl-color-selected)' : 'var(--tl-color-text)',
+                      cursor: 'pointer',
+                      fontSize: size.md,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: isActive ? 600 : 400,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {c.name}
+                    </div>
+                    <div style={{ fontSize: size.sm, color: 'var(--tl-color-text-3)' }}>
+                      {fmtTime(c.modified)}
+                      {c.parent_slug && ` · from ${c.parent_slug}`}
+                    </div>
+                  </button>
+                  <IconButton
+                    title={isPendingDelete ? `Confirm delete "${c.name}"` : `Delete "${c.name}"`}
+                    onClick={() => (isPendingDelete ? onDelete(slug) : setPendingDelete(slug))}
+                    danger={isPendingDelete}
+                  >
+                    {isPendingDelete ? '✓' : '×'}
+                  </IconButton>
+                </div>
               )
             })
           )}
@@ -471,10 +529,12 @@ function IconButton({
   children,
   title,
   onClick,
+  danger,
 }: {
   children: React.ReactNode
   title: string
   onClick: () => void
+  danger?: boolean
 }) {
   return (
     <button
@@ -485,14 +545,15 @@ function IconButton({
         width: 24,
         height: 24,
         borderRadius: 4,
-        border: '1px solid var(--tl-color-divider)',
-        background: 'transparent',
-        color: 'var(--tl-color-text)',
+        border: `1px solid ${danger ? '#f38ba8' : 'var(--tl-color-divider)'}`,
+        background: danger ? 'rgba(243, 139, 168, 0.12)' : 'transparent',
+        color: danger ? '#f38ba8' : 'var(--tl-color-text)',
         fontSize: size.lg,
         cursor: 'pointer',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
+        flexShrink: 0,
       }}
     >
       {children}
