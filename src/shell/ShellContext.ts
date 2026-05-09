@@ -12,10 +12,10 @@ export interface ShellState {
   dirty: boolean
 }
 
-// Provided by AppShell, consumed by chip components rendered inside
-// tldraw's SharePanel slot. Lets the in-tldraw chips toggle the
-// catalog/library panels without standalone fixed-positioned pills
-// that would collide with tldraw's chrome.
+// Provided by AppShell, consumed by MenuPanel (rendered inside
+// tldraw's top-left MenuPanel slot). Lets the catalog/library
+// toggles read shell state without standalone fixed-positioned
+// pills that would collide with tldraw's chrome.
 export const ShellContext = createContext<ShellState | null>(null)
 
 export function useShell(): ShellState {
