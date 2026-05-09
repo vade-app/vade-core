@@ -241,23 +241,34 @@ echo "{\"operator\":[\"$PREVIEW_OPERATOR\"],\"agents\":[]}" | \
 
 ### One-time Cloudflare-side setup
 
-Done in the Cloudflare dashboard (Worker / DNS / Builds settings),
-not via `wrangler`:
+Done in the Cloudflare dashboard (Worker / DNS / Builds /
+SSL-TLS settings), not via `wrangler`:
 
-1. **Wildcard DNS.** Zone `vade-app.dev` → DNS → add a CNAME or
-   A record `*.preview` proxied (orange cloud). Universal SSL
-   covers `*.preview.vade-app.dev` provided the plan supports
-   wildcard certs.
-2. **Workers Builds production lock.** Workers & Pages →
+1. **Wildcard DNS.** Zone `vade-app.dev` → DNS → add an AAAA
+   record `*.preview` pointing at `100::` (Cloudflare's proxied-
+   only placeholder), proxied (orange cloud).
+2. **Advanced Certificate Manager (ACM).** Zone → SSL/TLS →
+   Edge Certificates → "Order Advanced Certificate" with hosts
+   `*.preview.vade-app.dev` and `preview.vade-app.dev`,
+   validation method `txt`, validity 365d. Required because the
+   Free-plan Universal SSL only covers `vade-app.dev` and
+   `*.vade-app.dev` (one level); the two-level wildcard
+   `*.preview.vade-app.dev` is an ACM cert (paid). Without this,
+   any `https://pr-<N>.preview.vade-app.dev/` returns 503 with a
+   TLS-handshake error from Cloudflare's edge.
+3. **Workers Builds production lock.** Workers & Pages →
    `vade-core` → Settings → Builds → set production-branch to
    `main` only. Without this, every PR-branch push redeploys
    production (the bug that surfaced in #167).
-3. **Workers Builds preview env.** On the same `vade-core` build
-   config, enable preview deployments for non-production branches
-   with the build command `wrangler deploy --env preview`.
-   Cloudflare provisions the `vade-core-preview` Worker on first
-   preview run.
-4. **Preview Worker secrets.** Once `vade-core-preview` exists in
+4. **Workers Builds preview env.** On the same `vade-core` build
+   config, enable preview deployments for non-production
+   branches with the build command **`npm run deploy:preview`**.
+   Cloudflare provisions the `vade-core-preview` Worker on the
+   first preview run. (The script invokes
+   `wrangler deploy --config wrangler.jsonc --env preview
+   --assets ./dist/client`; see README "Deploy" for why the
+   `--config`/`--assets` overrides are required.)
+5. **Preview Worker secrets.** Once `vade-core-preview` exists in
    the dashboard, set its operator token via
    `wrangler secret put OPERATOR_TOKENS --env preview` (separate
    value from production, per above).

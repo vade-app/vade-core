@@ -12,6 +12,7 @@
     "mcp:sse": "VADE_MCP_TRANSPORT=sse VADE_MCP_HTTP_PORT=8080 tsx mcp/index.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run mcp\"",
     "deploy": "npm run build && wrangler deploy",
+    "deploy:preview": "npm run build && wrangler deploy --config wrangler.jsonc --env preview --assets ./dist/client",
     "migrate-library": "tsx scripts/migrate-library.ts",
     "typecheck:worker": "tsc -p tsconfig.worker.json",
     "typecheck:mcp": "tsc -p tsconfig.mcp.build.json"
