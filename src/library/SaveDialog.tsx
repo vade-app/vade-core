@@ -55,8 +55,8 @@ export function SaveDialog({
         onClick={(e) => e.stopPropagation()}
         style={{
           minWidth: 320,
-          padding: 16,
-          background: 'var(--tl-color-low)',
+          padding: 20,
+          background: 'var(--tl-color-panel)',
           color: 'var(--tl-color-text)',
           borderRadius: 12,
           border: '1px solid var(--tl-color-divider)',
