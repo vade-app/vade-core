@@ -131,6 +131,22 @@ export function AppShell({ assetStore, licenseKey, components, onMount }: AppShe
   const isDark = useValue('isDark', () => editor?.user.getIsDarkMode() ?? false, [editor])
   const themeClass = isDark ? 'tl-theme__dark' : 'tl-theme__light'
 
+  // Mirror the theme class onto documentElement so portaled UI
+  // (SaveDialog and any future portal surface) sees tldraw's
+  // var(--tl-color-*) CSS custom properties. The flex-wrapper class
+  // below covers in-tree panels (Sidebar, LibraryPanel, FullPage),
+  // but createPortal targets document.body — outside that wrapper —
+  // and without the theme class on an ancestor, every var(--tl-*)
+  // falls back to its initial value and the dialog body renders
+  // transparent. Reported on PR #194 verification.
+  useEffect(() => {
+    const html = document.documentElement
+    html.classList.add(themeClass)
+    return () => {
+      html.classList.remove(themeClass)
+    }
+  }, [themeClass])
+
   return (
     <ShellContext.Provider value={shellState}>
       <>
