@@ -78,12 +78,14 @@ export function SaveDialog({
           }}
           style={{
             width: '100%',
+            boxSizing: 'border-box',
             padding: '6px 8px',
             background: 'var(--tl-color-background)',
             border: '1px solid var(--tl-color-divider)',
             color: 'var(--tl-color-text)',
             borderRadius: 6,
             fontSize: size.lg,
+            outline: 'none',
           }}
         />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
