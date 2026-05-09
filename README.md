@@ -67,11 +67,20 @@ both `vade-app.dev` and `www.vade-app.dev` as `custom_domain` routes.
 
 A second `vade-core-preview` Worker (`wrangler.jsonc → env.preview`)
 serves per-PR builds at `pr-<N>.preview.vade-app.dev`. Cloudflare
-Workers Builds runs `wrangler deploy --env preview` on non-`main`
-pushes; the most recent preview push wins (single Worker — only one
-PR previewable at a time). Library bindings are deliberately omitted
+Workers Builds runs `npm run deploy:preview` on non-`main` pushes;
+the most recent preview push wins (single Worker — only one PR
+previewable at a time). Library bindings are deliberately omitted
 from the preview env, so `/library/*` fails loudly there until a
 follow-up provisions a separate `vade-library-preview` bucket / D1.
+
+The `deploy:preview` script invokes `wrangler deploy --config
+wrangler.jsonc --env preview --assets ./dist/client` rather than the
+plain `wrangler deploy` used for production. The `--config` /
+`--assets` flags bypass the `@cloudflare/vite-plugin` build-time
+config redirect (which produces a per-build wrangler.json that
+doesn't preserve the `env.preview` block), so the source config's
+env override is honored.
+
 Topology rationale: see issue #168 (subdomain over path-prefix to
 keep prod SPA state isolated from preview builds). Manual one-time
 provisioning lives in [docs/auth.md](docs/auth.md) → "Preview
