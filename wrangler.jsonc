@@ -38,7 +38,38 @@
 			"database_id": "9a3ff295-d190-40a5-be3b-1f2af0111d1d",
 			"remote": true
 		}
-	]
+	],
+	// Preview environment for per-PR canvas builds.
+	//
+	// Topology — vade-core#168 recommended path: subdomain-per-PR. A single
+	// `vade-core-preview` Worker is bound to `*.preview.vade-app.dev/*`;
+	// Cloudflare Workers Builds runs `wrangler deploy --env preview` on
+	// non-`main` pushes. The most recent preview push wins (latest PR's
+	// bundle overwrites the Worker); only one PR can be previewed at a
+	// time. Sufficient for M1; revisit if parallel-PR preview is needed.
+	//
+	// Library bindings (R2 / D1) are deliberately omitted from the preview
+	// env. The preview Worker has no library access — `/library/*` fails
+	// loudly. Cleanest isolation pre-provisioning a `vade-library-preview`
+	// bucket + D1; tracked as follow-up if stateful previews are wanted.
+	//
+	// Operator + library secrets live on the preview Worker name (separate
+	// from production secrets by virtue of separate Worker name). See
+	// docs/auth.md → "Preview deployments".
+	"env": {
+		"preview": {
+			"name": "vade-core-preview",
+			"routes": [
+				{
+					"pattern": "*.preview.vade-app.dev/*",
+					"zone_name": "vade-app.dev"
+				}
+			],
+			"observability": {
+				"enabled": true
+			}
+		}
+	}
 	// Secrets (set via `wrangler secret put <NAME>`; not in this file):
 	//   LIBRARY_BEARER   — service-to-service secret shared with the Fly
 	//                      MCP container (`VADE_LIBRARY_BEARER`).
@@ -48,4 +79,7 @@
 	//                      /library/*, which is what the SPA CanvasSwitcher
 	//                      uses to talk to the library without a live MCP
 	//                      session. See docs/auth.md.
+	// Preview Worker (`vade-core-preview`) carries its own copies of these
+	// secrets. Use distinct values from production — separate bucket of
+	// blast-radius even though library access is currently unwired there.
 }

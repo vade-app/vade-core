@@ -61,9 +61,21 @@ Two independent deploy targets, both driven off `main`:
 **Canvas SPA + library API** — Cloudflare Worker (`wrangler.jsonc`).
 The Worker serves Vite-built assets from `dist/client/` and owns the
 bearer-gated `/library/*` route, which reads/writes R2 (`LIBRARY_R2`)
-and D1 (`vade_library`). Deploys are triggered by Cloudflare's Git
-integration on push to `main`. `routes` attaches both `vade-app.dev`
-and `www.vade-app.dev` as `custom_domain` routes.
+and D1 (`vade_library`). Production deploys are triggered by
+Cloudflare's Git integration on push to `main`. `routes` attaches
+both `vade-app.dev` and `www.vade-app.dev` as `custom_domain` routes.
+
+A second `vade-core-preview` Worker (`wrangler.jsonc → env.preview`)
+serves per-PR builds at `pr-<N>.preview.vade-app.dev`. Cloudflare
+Workers Builds runs `wrangler deploy --env preview` on non-`main`
+pushes; the most recent preview push wins (single Worker — only one
+PR previewable at a time). Library bindings are deliberately omitted
+from the preview env, so `/library/*` fails loudly there until a
+follow-up provisions a separate `vade-library-preview` bucket / D1.
+Topology rationale: see issue #168 (subdomain over path-prefix to
+keep prod SPA state isolated from preview builds). Manual one-time
+provisioning lives in [docs/auth.md](docs/auth.md) → "Preview
+deployments".
 
 **MCP server** — Fly.io app `vade-mcp` at `mcp.vade-app.dev`
 (`Dockerfile` + `fly.toml`). The container runs the SSE MCP transport

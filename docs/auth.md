@@ -217,6 +217,65 @@ echo "$NEW" | wrangler secret put LIBRARY_BEARER
 Both restart on secret change; brief library-API downtime is
 expected (~15s on Fly side).
 
+## Preview deployments
+
+The `vade-core-preview` Worker (one Worker, multiple subdomains via
+the `*.preview.vade-app.dev/*` wildcard route) carries its own
+secret slots, separate from the production `vade-core` Worker by
+virtue of distinct Worker names. **Use distinct token values** —
+sharing the prod operator token with preview widens the blast
+radius of a leaked preview build.
+
+```sh
+# Provision preview-only operator token (runs once, before first
+# preview deploy lands).
+PREVIEW_OPERATOR=$(openssl rand -hex 32)
+echo "{\"operator\":[\"$PREVIEW_OPERATOR\"],\"agents\":[]}" | \
+  wrangler secret put OPERATOR_TOKENS --env preview
+
+# Library bearer is unused on the preview Worker today (no R2 / D1
+# bindings under env.preview in wrangler.jsonc). When stateful
+# previews land, set a preview-only LIBRARY_BEARER on a separate
+# preview bucket + D1.
+```
+
+### One-time Cloudflare-side setup
+
+Done in the Cloudflare dashboard (Worker / DNS / Builds settings),
+not via `wrangler`:
+
+1. **Wildcard DNS.** Zone `vade-app.dev` → DNS → add a CNAME or
+   A record `*.preview` proxied (orange cloud). Universal SSL
+   covers `*.preview.vade-app.dev` provided the plan supports
+   wildcard certs.
+2. **Workers Builds production lock.** Workers & Pages →
+   `vade-core` → Settings → Builds → set production-branch to
+   `main` only. Without this, every PR-branch push redeploys
+   production (the bug that surfaced in #167).
+3. **Workers Builds preview env.** On the same `vade-core` build
+   config, enable preview deployments for non-production branches
+   with the build command `wrangler deploy --env preview`.
+   Cloudflare provisions the `vade-core-preview` Worker on first
+   preview run.
+4. **Preview Worker secrets.** Once `vade-core-preview` exists in
+   the dashboard, set its operator token via
+   `wrangler secret put OPERATOR_TOKENS --env preview` (separate
+   value from production, per above).
+
+### Verifying
+
+After the preview Worker is live:
+
+```sh
+curl -fsS "https://pr-<N>.preview.vade-app.dev/" -o /dev/null -w "%{http_code}\n"   # → 200 (SPA shell)
+curl -sS  "https://pr-<N>.preview.vade-app.dev/library/canvases" -o /dev/null -w "%{http_code}\n"   # → 500 (no R2 binding; expected)
+```
+
+The preview Worker is "demo the UI" only until `/library/*` is
+unwired with a separate bucket + database. Pasting the
+`PREVIEW_OPERATOR` token into the preview SPA gates past the
+TokenGate; canvas pan/zoom/shape-creation work; save/load fail.
+
 ## Threat model (M1)
 
 In-scope:
