@@ -44,7 +44,7 @@ export function SaveDialog({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0, 0, 0, 0.35)',
+        background: 'rgba(0, 0, 0, 0.15)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
