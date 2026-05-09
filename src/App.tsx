@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { type TLUiComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { VadeBridge, type BridgeStatus } from './bridge/ws-client'
@@ -8,16 +8,6 @@ import { createVadeAssetStore } from './assets/vade-asset-store'
 import { AppShell } from './shell/AppShell'
 import { AuthContext } from './shell/AuthContext'
 import { fontMono, size } from './shell/typography'
-
-// Custom MenuPanel hosts tldraw's default top-left menu group plus
-// the Catalog and Canvas (Library) toggles, so VADE's two primary
-// navigations read as first-class chrome (vade-core#182). MainMenu
-// adds a Sign-out item to tldraw's default menu (#186); it resolves
-// through the components context inside DefaultMenuPanel.
-const tldrawComponents: TLUiComponents = {
-  MenuPanel,
-  MainMenu,
-}
 
 const TOKEN_STORAGE_KEY = 'vade-auth-token'
 
@@ -35,6 +25,11 @@ function readStoredToken(): string | null {
 
 const COMMIT_SHA = import.meta.env.VITE_COMMIT_SHA
 
+// Status dot rendered into tldraw's SharePanel slot (top-right). Was
+// previously a fixed-position pill at bottom-right that overlapped
+// tldraw's StylePanel (canvas-ui skill landmine 6). Compresses to a
+// 10px dot; the BridgeStatus label and commit SHA move to the title
+// hover. Click-to-reauth is preserved when status is 'unauthorized'.
 function ConnectionIndicator({ bridge, onClearToken }: { bridge: VadeBridge; onClearToken: () => void }) {
   const [status, setStatus] = useState<BridgeStatus>('disconnected')
 
@@ -51,50 +46,42 @@ function ConnectionIndicator({ bridge, onClearToken }: { bridge: VadeBridge; onC
   }
 
   const labels: Record<BridgeStatus, string> = {
-    connected: 'MCP',
-    connecting: 'connecting...',
-    disconnected: 'offline',
-    'no-bridge': 'no bridge',
-    unauthorized: 'bad token',
+    connected: 'MCP connected',
+    connecting: 'MCP connecting…',
+    disconnected: 'MCP offline',
+    'no-bridge': 'MCP: no bridge',
+    unauthorized: 'MCP: bad token (click to re-enter)',
   }
 
   const interactive = status === 'unauthorized'
+  const titleParts = [labels[status]]
+  if (COMMIT_SHA && COMMIT_SHA !== 'dev') titleParts.push(COMMIT_SHA)
 
   return (
     <div
-      onClick={interactive ? onClearToken : undefined}
       style={{
-        position: 'fixed',
-        bottom: 12,
-        right: 12,
-        zIndex: 1000,
         display: 'flex',
         alignItems: 'center',
-        gap: 6,
-        padding: '4px 10px',
-        borderRadius: 12,
-        background: 'var(--tl-color-panel-overlay)',
-        color: colors[status],
-        fontSize: size.sm,
-        fontFamily: fontMono,
-        pointerEvents: interactive ? 'auto' : 'none',
-        cursor: interactive ? 'pointer' : 'default',
-        backdropFilter: 'blur(8px)',
+        padding: '0 8px',
+        pointerEvents: 'all',
       }}
-      title={interactive ? 'Click to re-enter token' : undefined}
     >
-      <div
+      <button
+        type="button"
+        onClick={interactive ? onClearToken : undefined}
+        aria-label={labels[status]}
+        title={titleParts.join(' · ')}
+        disabled={!interactive}
         style={{
-          width: 6,
-          height: 6,
+          width: 10,
+          height: 10,
           borderRadius: '50%',
           background: colors[status],
+          border: 'none',
+          padding: 0,
+          cursor: interactive ? 'pointer' : 'default',
         }}
       />
-      {labels[status]}
-      {COMMIT_SHA && COMMIT_SHA !== 'dev' && (
-        <span style={{ color: '#6c7086' }}>· {COMMIT_SHA}</span>
-      )}
     </div>
   )
 }
@@ -186,6 +173,31 @@ export default function App() {
   // devices instead of dangling at the source device's local IndexedDB.
   const assetStore = useMemo(() => createVadeAssetStore(), [])
 
+  const clearToken = useCallback(() => {
+    try {
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY)
+    } catch {
+      // ignore
+    }
+    bridge.disconnect()
+    setToken(null)
+  }, [bridge])
+
+  // Custom MenuPanel hosts tldraw's default top-left menu group plus
+  // the Catalog and Canvas toggles (vade-core#182). MainMenu adds a
+  // Sign-out item to tldraw's default menu (#186). SharePanel hosts
+  // the connection-status dot in the top-right slot — moved off the
+  // bottom-right floating-pill spot that overlapped tldraw's
+  // StylePanel.
+  const tldrawComponents = useMemo<TLUiComponents>(
+    () => ({
+      MenuPanel,
+      MainMenu,
+      SharePanel: () => <ConnectionIndicator bridge={bridge} onClearToken={clearToken} />,
+    }),
+    [bridge, clearToken],
+  )
+
   if (requiresAuth && !token) {
     return (
       <TokenGate
@@ -201,16 +213,6 @@ export default function App() {
     )
   }
 
-  const clearToken = () => {
-    try {
-      window.localStorage.removeItem(TOKEN_STORAGE_KEY)
-    } catch {
-      // ignore
-    }
-    bridge.disconnect()
-    setToken(null)
-  }
-
   return (
     <AuthContext.Provider value={{ signOut: clearToken }}>
       <AppShell
@@ -221,7 +223,6 @@ export default function App() {
           bridgeRef.current.connect(editor)
         }}
       />
-      <ConnectionIndicator bridge={bridge} onClearToken={clearToken} />
     </AuthContext.Provider>
   )
 }
