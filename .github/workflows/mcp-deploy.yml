@@ -34,7 +34,7 @@ jobs:
       - name: Typecheck MCP server
         run: npm run typecheck:mcp
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@v1
 
       - name: Deploy to Fly
         run: flyctl deploy --remote-only --app vade-mcp
