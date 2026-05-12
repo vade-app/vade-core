@@ -97,21 +97,26 @@ for the authoritative list.
 ## Hitting an OAuth/scope wall on `git push` from a remote session
 
 Claude Code on the web sessions push through a scoped-down git
-proxy. The two recurring blockers are:
+proxy. Two failure shapes recur:
 
-- `git push` rejected with `refusing to allow an OAuth App to
-  create or update workflow ... without 'workflow' scope` (any
-  `.github/workflows/*` change).
-- GitHub MCP `create_or_update_file` / `push_files` returning
-  `404 Not Found` despite reads working.
+- **Proxy-class 403** (intermittent, often on the second push of a
+  session). `vade-runtime/scripts/git-shim.sh` +
+  `git-push-with-fallback.sh` handle this automatically — they
+  retry once via the direct github.com URL with the PAT selected
+  by remote owner (`GITHUB_MCP_PAT` for `vade-app/*`,
+  `GITHUB_PUBLIC_PAT` for everything else; MEMO-2026-05-12-22m9).
+  No manual intervention required; check the next try.
 
-Don't burn cycles retrying or asking for token swaps. Commit the
-work locally on the branch, then suggest the user `/teleport` the
-session to their local Claude Code and finish the push from there
-— typically with `git push git@github.com:OWNER/REPO.git BRANCH`.
-SSH key auth bypasses the OAuth-app scope restriction entirely.
-The unblock for vade-core PR #49 (workflow files) on 2026-04-20
-is the canonical example.
+- **OAuth-app `workflow` scope wall**: `refusing to allow an OAuth
+  App to create or update workflow ... without 'workflow' scope`
+  on any `.github/workflows/*` change. The PATs in env do not carry
+  the `workflow` scope, so the auto-fallback also fails. Commit the
+  work locally on the branch, then suggest the user `/teleport` the
+  session to their local Claude Code and finish the push from there
+  — typically with `git push git@github.com:OWNER/REPO.git BRANCH`.
+  SSH key auth bypasses the OAuth-app scope restriction entirely.
+  The unblock for vade-core PR #49 (workflow files) on 2026-04-20
+  is the canonical example.
 
 ## Current state
 
