@@ -22,7 +22,11 @@ name: Issue / PR hygiene
 
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened]
+    # `synchronize` (push commits to PR branch) dropped: the title/body —
+    # the only thing these checks examine — doesn't change on commit push,
+    # so synchronize events are pure 1-min-floor waste. `edited` stays so
+    # users can fix a failed check by editing the body in place.
+    types: [opened, edited, reopened]
   issues:
     types: [opened, edited, labeled]
 
@@ -37,11 +41,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  closing-keywords:
+  pr-checks:
+    # Patterns B (advisory in this repo) + C + D (advisory). One job,
+    # sequential steps — shares the 1-min runner floor across both
+    # checks. C+D step uses `if: !cancelled()` so it still posts when
+    # the B step fails.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Check for closing keywords
+      - name: Check for closing keywords (Pattern B — advisory)
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -167,11 +175,9 @@ jobs:
             }
             core.warning(`Pattern B (closing keywords) — advisory: ${summary}`);
 
-  cross-repo-and-collision-refs:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Lint cross-repo + collision-prone references
+      - name: Lint cross-repo + collision-prone references (Patterns C+D — advisory)
+        # Run even when the closing-keywords step failed.
+        if: ${{ !cancelled() }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
