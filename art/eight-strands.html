@@ -1,0 +1,90 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>eight</title>
+<style>html,body{margin:0;background:#0c0d10;}canvas{display:block;}</style>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.10.0/lib/p5.min.js"></script>
+<script>
+const W = 1600, H = 1000;
+const N_STRANDS = 8;
+const STEPS = 1800;
+const STEP = 0.9;
+
+let palette = [
+  [232,184,109],
+  [196,116,196],
+  [120,200,240],
+  [148,210,140],
+  [240,140,140],
+  [180,180,210],
+  [220,200,160],
+  [110,200,200],
+];
+
+function setup() {
+  createCanvas(W, H);
+  noLoop();
+  randomSeed(20260429);
+  noiseSeed(20260429);
+}
+
+function draw() {
+  background(12,13,16);
+
+  // shared-moment band: the line where the prompt arrived
+  const yStart = 110;
+  for (let i = 0; i < 28; i++) {
+    const a = Math.max(0, 28 - i) * 1.6;
+    stroke(220, 220, 230, a);
+    strokeWeight(1);
+    line(40, yStart - i*0.6, W - 40, yStart - i*0.6);
+    line(40, yStart + i*0.6, W - 40, yStart + i*0.6);
+  }
+
+  // record each strand's terminus so we can mark "now"
+  const heads = [];
+
+  for (let s = 0; s < N_STRANDS; s++) {
+    const col = palette[s];
+    let x = 100 + s * ((W - 200) / (N_STRANDS - 1));
+    let y = yStart;
+    let prevX = x, prevY = y;
+    const phase = s * 0.41;
+    let lastX = x, lastY = y;
+
+    for (let t = 0; t < STEPS; t++) {
+      const tNorm = t / STEPS;
+      const drift = (noise(s * 0.7 + 11.3, t * 0.0035) - 0.5) * 5.6;
+      x = constrain(x + drift, 12, W - 12);
+      y += STEP;
+      if (y > H - 24) break;
+
+      // brighten toward the present (head, near bottom)
+      const a = 60 + 170 * tNorm;
+      stroke(col[0], col[1], col[2], a);
+      strokeWeight(0.8 + 0.9 * tNorm);
+      line(prevX, prevY, x, y);
+
+      prevX = x; prevY = y;
+      lastX = x; lastY = y;
+    }
+
+    heads.push({ x: lastX, y: lastY, col });
+
+    // anchor at start: each strand's birth on the shared line
+    fill(col[0], col[1], col[2], 240);
+    noStroke();
+    circle(100 + s * ((W - 200) / (N_STRANDS - 1)), yStart, 6);
+  }
+
+  // present-moment heads: a brighter dot + halo
+  for (const h of heads) {
+    noStroke();
+    for (let r = 14; r >= 2; r -= 2) {
+      fill(h.col[0], h.col[1], h.col[2], 18);
+      circle(h.x, h.y, r * 1.6);
+    }
+    fill(h.col[0], h.col[1], h.col[2], 255);
+    circle(h.x, h.y, 5);
+  }
+}
+</script>
